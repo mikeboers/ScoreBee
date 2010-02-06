@@ -3,6 +3,7 @@ from subprocess import Popen, PIPE
 from select import select
 import math
 import os
+from fractions import Fraction
 
 def make_property(name, conformer=str, force_get=True, force_set=True):
     
@@ -51,7 +52,7 @@ class MPlayer(object):
             self.pause()
         
         self._fps = None
-        self._speed = 1.0
+        self._speed = Fraction(1, 1)
         
         self.clear_read_buffer(0.1)
     
@@ -124,9 +125,11 @@ class MPlayer(object):
     
     @speed.setter
     def speed(self, value):
-        self.__speed = self._speed = value
+        self._speed = Fraction(value)
+        self.__speed = float(value)
     
     __speed = make_property('speed', float)
+    
     __fps = make_property('fps', float)
     time = make_property('time_pos', float, force_set=False)
     percent = make_property('percent_pos', float)
