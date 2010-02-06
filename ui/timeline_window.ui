@@ -62,8 +62,11 @@
          <height>0</height>
         </size>
        </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
-        <string notr="true">background-color:red</string>
+        <string notr="true"/>
        </property>
       </widget>
      </widget>
@@ -90,7 +93,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QScrollBar" name="horizontalScrollBar">
+       <widget class="QScrollBar" name="scrollbar">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>

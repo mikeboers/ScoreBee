@@ -27,11 +27,11 @@ class App(object):
     def __init__(self, argv):
         self.app = QtGui.QApplication(argv)
         
-        self.timeline = TimelineWindow()
+        self.timeline = TimelineWindow(self)
         self.status = StatusWindow(self, self.timeline)
         self.info = InfoWindow(self.timeline)
 
-        self.doc = None
+        self._doc = None
         
         data = [
             ('General Info', [
@@ -64,6 +64,20 @@ class App(object):
         # This will be updated by the status window.
         self.time = 0
     
+    @property
+    def doc(self):
+        return self._doc
+    
+    @doc.setter
+    def doc(self, doc):
+        self._doc = doc
+        self.status.repaint()
+        self.timeline.doc_changed()
+    
+    
+    
+    
+    
     def idleEvent(self, event):
         this_time = time.time()
         time_delta = this_time - self.last_sync
@@ -85,6 +99,8 @@ class App(object):
                 
                 self.needs_sync = False
                 self.last_sync = this_time
+            
+            self.timeline.repaint()
         
         self.status.set_time(self.time)
     
@@ -108,6 +124,7 @@ class App(object):
             def handler():
                 window = getattr(self, name)
                 window.show()
+                window.repaint()
                 window.raise_()
             return handler
         for name in WINDOW_NAMES:
@@ -136,7 +153,7 @@ class App(object):
         self.status.show()
         self.info.show()
         self.timeline.show()
-        
+        self.timeline.repaint()
         
         
         
@@ -150,8 +167,7 @@ class App(object):
         self.doc.append(Track('Better one', 'e', [
             (25, 26), (70, 71)
         ]))
-        # This starts up the player.
-        log.debug('%d frames' % self.doc.mp.frame_count)
+        self.timeline.doc_changed()
         
         self.idle_timer.start()
         self.app.exec_()
