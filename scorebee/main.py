@@ -100,9 +100,18 @@ class App(object):
         self.timeline.show()
         
         
+        
+        
         # This is just a hack for now.
         self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
-        self.doc.mp
+        self.doc.append(Track('A behaviour', 'q', [
+            (10, 15), (50, 65)
+        ]))
+        self.doc.append(Track('Nothin here', 'w', []))
+        self.doc.append(Track('Better one', 'e', [
+            (25, 26), (70, 71)
+        ]))
+        print self.doc
         
         
         
