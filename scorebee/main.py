@@ -20,12 +20,7 @@ WINDOW_NAMES = 'status', 'info', 'timeline'
 
 SYNC_INTERVAL = 0.5
 
-TIME_MODE_SECONDS = 'seconds'
-TIME_MODE_FRAMES = 'frames'
-time_mode_next = {
-    TIME_MODE_SECONDS: TIME_MODE_FRAMES,
-    TIME_MODE_FRAMES: TIME_MODE_SECONDS
-}
+
 
 class App(object):
     
@@ -67,17 +62,7 @@ class App(object):
         self.needs_sync = True
         
         # This will be updated by the status window.
-        self.speed = 1
         self.time = 0
-        self.time_mode = TIME_MODE_FRAMES
-    
-    @property
-    def speed(self):
-        return self._speed
-    
-    @speed.setter
-    def speed(self, value):
-        self._speed = value
     
     def idleEvent(self, event):
         this_time = time.time()
@@ -87,10 +72,8 @@ class App(object):
             self.needs_sync = True
         
         if not self.doc.mp.is_paused:
-            speed_offset = 1 + self.sync_offset / (self.speed * SYNC_INTERVAL)
-            print '%.3f' % speed_offset
-            
-            self.time = self.sync_time + self.speed * time_delta
+            # speed_offset = 1 + self.sync_offset / (self.doc.mp.speed * SYNC_INTERVAL)
+            self.time = self.sync_time + self.doc.mp.speed * time_delta
             
             if self.needs_sync:
                 
@@ -103,8 +86,7 @@ class App(object):
                 self.needs_sync = False
                 self.last_sync = this_time
         
-        self.status.ui.time.setText('%.3fs' % self.time)
-        self.status.ui.speed.setText('speed: %sx' % self.doc.mp.speed)
+        self.status.set_time(self.time)
     
     def setup_menu(self):
         
