@@ -4,6 +4,11 @@ from select import select
 import math
 import os
 from fractions import Fraction
+import logging
+
+
+log = logging.getLogger(__name__)
+
 
 def make_property(name, conformer=str, force_get=True, force_set=True):
     
@@ -39,7 +44,7 @@ class MPlayer(object):
     
     def __init__(self, src, autoplay=False):
         
-        self.proc = Popen(['mplayer', '-slave', '-quiet', 
+        self.proc = Popen(['mplayer', '-slave', '-quiet', '-framedrop', 
             '-input', 'conf=' + os.path.abspath(__file__ + '/../../settings/mplayer.txt'),
             src], stdin=PIPE, stderr=None, stdout=PIPE)
         
@@ -88,12 +93,14 @@ class MPlayer(object):
     
     def _cmd(self, cmd, timeout=0.1):
         self.clear_read_buffer()
+        log.debug('cmd %r' % cmd)
         self.stdin.write(cmd + '\n')
+        self.stdin.flush()
         if self.readable(self.stdout, timeout):
             return self.stdout.readline().strip()
     
     @property
-    def is_is_paused(self):
+    def is_paused(self):
         return self._is_paused
     
     def pause(self):

@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import logging
+import time
 
 from scorebee.qt import *
 
@@ -17,6 +18,14 @@ log = logging.getLogger(__name__)
 
 WINDOW_NAMES = 'status', 'info', 'timeline'
 
+SYNC_INTERVAL = 0.5
+
+TIME_MODE_SECONDS = 'seconds'
+TIME_MODE_FRAMES = 'frames'
+time_mode_next = {
+    TIME_MODE_SECONDS: TIME_MODE_FRAMES,
+    TIME_MODE_FRAMES: TIME_MODE_SECONDS
+}
 
 class App(object):
     
@@ -46,13 +55,52 @@ class App(object):
         self.info.update(data)
         
         self.setup_menu()
+        
+        
         self.idle_timer = QTimer()
         self.idle_timer.setInterval(10)
         self.idle_timer.timerEvent = self.idleEvent
-        self.idle_counter = 0
+        self.last_idle = 0
+        self.last_sync = 0
+        self.sync_offset = 0
+        self.needs_sync = True
+        
+        # This will be updated by the status window.
+        self.speed = 1
+        self.time = 0
+        self.time_mode = TIME_MODE_FRAMES
+    
+    @property
+    def speed(self):
+        return self._speed
+    
+    @speed.setter
+    def speed(self, value):
+        self._speed = value
     
     def idleEvent(self, event):
-        pass
+        this_time = time.time()
+        time_delta = this_time - self.last_idle
+        self.last_idle = this_time
+        
+        if this_time - self.last_sync > SYNC_INTERVAL:
+            self.needs_sync = True
+        
+        if not self.doc.mp.is_paused:
+            self.time += self.speed * time_delta
+            if self.needs_sync:
+                
+                # SYNC!
+                new_time = self.doc.mp.time
+                self.sync_offset = new_time - self.time
+                self.status.ui.sync.setText('sync: %5.1fms' % abs(1000 * self.sync_offset))
+                self.time = new_time
+                
+                self.needs_sync = False
+                self.last_sync = this_time
+        
+        self.status.ui.time.setText('%.3fs' % self.time)
+        self.status.ui.speed.setText('speed: %sx' % self.doc.mp.speed)
     
     def setup_menu(self):
         
@@ -108,6 +156,7 @@ class App(object):
         
         # This is just a hack for now.
         self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
+        # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
         self.doc.append(Track('A behaviour', 'q', [
             (10, 15), (50, 65)
         ]))
