@@ -56,28 +56,50 @@ class TimelineWindow(QtGui.QMainWindow):
             # The header line.
             p.drawLine(HEADER_WIDTH, 0, HEADER_WIDTH, height)
             
+            fps = self.mp.fps
+            frame = int(self.app.time * fps)
+            frame_scroll_offset = self.ui.scrollbar.value()
+            
             # The play head.
-            frame = int(self.app.time * self.mp.fps)
-            frame_offset = self.ui.scrollbar.value()
-            head_pos = HEADER_WIDTH + frame - frame_offset
-            if frame > frame_offset: # It is visible 
+            head_pos = HEADER_WIDTH + frame - frame_scroll_offset
+            if frame > frame_scroll_offset: # It is visible 
                 p.setPen(QColor(128, 0, 0, 200))
                 p.setBrush(QColor(128, 0, 0, 100))
                 p.drawPolygon(
                     QPoint(head_pos, RULER_HEIGHT),
-                    QPoint(head_pos - 4, 0),
-                    QPoint(head_pos + 4, 0)
+                    QPoint(head_pos - 7, 0),
+                    QPoint(head_pos + 7, 0)
                 )
                 p.drawLine(head_pos, RULER_HEIGHT, head_pos, height)
             
             # The ruler...
             p.setPen(QColor(0))
+            p.drawLine(0, RULER_HEIGHT, width, RULER_HEIGHT)
+            start_frame = frame_scroll_offset
+            end_frame = start_frame + width
+            for i in xrange((start_frame + fps) / fps * fps, end_frame, fps):
+                x = HEADER_WIDTH + i - frame_scroll_offset
+                s = i / fps
+                if not s % 2:
+                    p.setPen(QColor(0))
+                    txt = str(s)
+                    txt_width = p.fontMetrics().width(txt)
+                    p.drawText(QPoint(x - txt_width/2, RULER_HEIGHT - 4), str(s))
+                p.setPen(QColor(200,200,200))
+                p.drawLine(x, 0, x, RULER_HEIGHT - 6)
+            
+            # The tracks themselves
             for track_i, track in enumerate(self.app.doc):
                 print track.name
-                y_offset = RULER_HEIGHT + (track_i + 1) * TRACK_HEIGHT
+                y_offset = RULER_HEIGHT + track_i * TRACK_HEIGHT
                 
                 # The bottom border.
-                p.drawLine(0, y_offset, self.size().width(), y_offset)
+                p.setPen(QColor(100, 100, 100))
+                p.drawLine(0, y_offset + TRACK_HEIGHT, self.size().width(), y_offset + TRACK_HEIGHT)
+                
+                # The name and key
+                p.setPen(QColor(0))
+                p.drawText(10, y_offset + TRACK_HEIGHT - 6, "%s (%s)" % (track.name, track.key))
             
         finally:
             p.end()
