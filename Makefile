@@ -9,8 +9,9 @@ scorebee/ui/%_rc.py: ui/%.qrc
 
 status_window: scorebee/ui/status_window.py scorebee/ui/status_window_rc.py
 info_window: scorebee/ui/info_window.py
+timeline_window: scorebee/ui/timeline_window.py
 
-build: status_window info_window
+build: status_window info_window timeline_window
 	# BUILD
 
 run: build

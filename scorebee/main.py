@@ -3,6 +3,7 @@ import sys
 
 from scorebee.qt import *
 
+from scorebee.timeline_window import TimelineWindow
 from scorebee.status_window import StatusWindow
 from scorebee.info_window import InfoWindow
 
@@ -12,8 +13,9 @@ class App(object):
     def __init__(self, argv):
         self.app = QtGui.QApplication(argv)
         
-        self.status = StatusWindow()
-        self.info = InfoWindow(self.status)
+        self.timeline = TimelineWindow()
+        self.status = StatusWindow(self.timeline)
+        self.info = InfoWindow(self.timeline)
 
 
         data = [
@@ -33,6 +35,7 @@ class App(object):
         self.info.update(data)
         
     def run(self):
+        self.timeline.show()
         self.status.show()
         self.info.show()
         self.app.exec_()
