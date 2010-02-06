@@ -23,6 +23,8 @@ Required
 	- .speed get/set
 	- .frame get/set
 	- .time  get/set
+	
+	Those last three can be make with a property constructor.
 
 - Status window.
 	Current time in frames or a float, basic playing controls. Indicator of
@@ -30,5 +32,33 @@ Required
 	
 	The time will be free running, and every couple seconds sync up with the
 	mplayer time.
+
+- Info window.
+	Has a number of sections that (would be nice) are collapsable. Just key
+	value pairs under that.
+	
+	Only needs one method to update it. Pass it a list like so:
+	[
+	'Header 1', [
+		['key1', 'value1'],
+		['key2', 'value2']],
+	'Header 2', [
+		...
+	]]
+
+- Data structure:
+	- Each track is it's own object.
+	- Each event on the track is it's own object.
+	- Events that are in progress are normal events, just the main controller
+	  knows that it has to keep updating them.
+	- Need to be quickly lookup the next event start time.
+
+- Timeline
+	- Horizontal scroll bar only affects the right part.
+	- Would be nice if you could drag how big the stuff on the left is
+	- Would be nice if I idn't have to write raw button code fot the lock/invisible.
+	- MAYBE have the lock/invisible in a menu instead of a button.
+
+
 
 
