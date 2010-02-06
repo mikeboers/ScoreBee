@@ -49,6 +49,8 @@ Required
 	]]
 
 - Data structure:
+	- A document object has a filename
+	- it has it's own mp object (which it always makes sure is not dead)
 	- Each track is it's own object.
 	- Each event on the track is it's own object.
 	- Events that are in progress are normal events, just the main controller

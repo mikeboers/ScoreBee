@@ -3,10 +3,10 @@ from subprocess import Popen, PIPE
 from select import select
 
 
-def make_property(name, conformer=str):
+def make_property(name, conformer=str, force_get=True, force_set=True):
     
-    get_cmd = 'pausing_keep_force get_property %s' % name
-    set_cmd = 'pausing_keep_force set_property %s' % name
+    get_cmd = 'pausing_keep%s get_property %s' % ('_force' if force_get else '', name)
+    set_cmd = 'pausing_keep%s set_property %s' % ('_force' if force_set else '', name)
     res_prefix = 'ANS_%s=' % name
     res_prefix_len = len(res_prefix)
     
@@ -23,13 +23,19 @@ def make_property(name, conformer=str):
     @prop.setter
     def prop(self, *args):
         cmd = set_cmd + ' ' + ' '.join(str(x) for x in args)
+        # print cmd
         self._cmd(cmd, 0)
     
     return prop
-    
+
+
+class MPlayerDied(ValueError):
+    pass
+
+
 class MPlayer(object):
     
-    def __init__(self, src):
+    def __init__(self, src, autoplay=False):
         
         self.proc = Popen(['mplayer', '-slave', '-quiet', src], stdin=PIPE,
             stderr=None, stdout=PIPE)
@@ -38,11 +44,21 @@ class MPlayer(object):
         self.stdout = self.proc.stdout
         self.stderr = self.proc.stderr
         
+        self._is_paused = False
+        if not autoplay:
+            self.pause()
+        
+        self._fps = None
+        
         self.clear_read_buffer(0.1)
     
     @property
     def is_running(self):
         return self.proc.poll() is None
+    
+    def assert_running(self):
+        if self.proc.poll() is not None:
+            raise MPlayerDied('mplayer has died')
     
     def __del__(self):
         if self.is_running:
@@ -50,8 +66,7 @@ class MPlayer(object):
             self.proc.kill()
     
     def readable(self, pipe, timeout=0):
-        if not self.is_running:
-            raise ValueError('proc has stopped')
+        self.assert_running()
         r, w, x = select([pipe], (), (), timeout)
         return bool(r)
     
@@ -65,9 +80,41 @@ class MPlayer(object):
         if self.readable(self.stdout, timeout):
             return self.stdout.readline().strip()
     
+    @property
+    def is_is_paused(self):
+        return self._is_paused
+    
+    def pause(self):
+        if not self._is_paused:
+            self._cmd('pausing_keep_force pause', 0)
+            self._is_paused = True
+    
+    def play(self):
+        if self._is_paused:
+            self._cmd('pause', 0)
+            self._is_paused = False
+    
+    @property
+    def fps(self):
+        if self._fps is None:
+            self._fps = self.__fps
+        return self._fps
+    
+    @property
+    def frame(self):
+        time = self.time
+        if time is not None:
+            return int(self.fps * time)
+    
+    @frame.setter
+    def frame(self, value):
+        """This is not exact. It will only get close."""
+        # print float(value) / float(self.fps)
+        self.time = float(value) / float(self.fps)
+    
     speed = make_property('speed', float)
-    fps = make_property('fps', float)
-    time = make_property('time_pos', float)
+    __fps = make_property('fps', float)
+    time = make_property('time_pos', float, force_set=False)
     percent = make_property('percent_pos', float)
     length = make_property('length', float)
     

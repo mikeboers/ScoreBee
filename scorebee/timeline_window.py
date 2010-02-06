@@ -10,7 +10,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ui = Ui_timeline_window()
         self.ui.setupUi(self)
         
-        # That the stupid status bar.
+        # Kill the status bar.
         self.setStatusBar(None)
     
     def set_canvas_height(self, height):    

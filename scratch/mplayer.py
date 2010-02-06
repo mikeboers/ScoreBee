@@ -16,7 +16,7 @@ print mp
 
 time.sleep(0.5)
 
-names = 'time fps speed'.split()
+names = 'time fps frame speed'.split()
 
 for i in range(10):
     start_time = time.time()
