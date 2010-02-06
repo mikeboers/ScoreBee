@@ -1,5 +1,7 @@
 
 import sys
+import json
+import os
 
 from scorebee.qt import *
 
@@ -35,10 +37,26 @@ class App(object):
         self.info.update(data)
         
     def run(self):
-        self.timeline.show()
+        
+        if os.path.exists('settings/windows.json'):
+            window_prefs = json.load(open('settings/windows.json'))
+            for name, data in window_prefs.iteritems():
+                window = getattr(self, name)
+                window.move(*data['pos'])
+                window.resize(*data['size'])
+            
         self.status.show()
         self.info.show()
+        self.timeline.show()
         self.app.exec_()
+        
+        window_prefs = {}
+        for name in 'status', 'info', 'timeline':
+            window_prefs[name] = dict(
+                pos=tuple(getattr(self, name).pos()),
+                size=tuple(getattr(self, name).size()),
+            )
+        json.dump(window_prefs, open('settings/windows.json', 'w'), indent=4)
 
 app = App(sys.argv)
 
