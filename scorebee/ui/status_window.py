@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/status_window.ui'
 #
-# Created: Sat Feb  6 11:03:57 2010
+# Created: Sat Feb  6 11:48:22 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_status_window(object):
     def setupUi(self, status_window):
         status_window.setObjectName("status_window")
-        status_window.setWindowModality(QtCore.Qt.ApplicationModal)
+        status_window.setWindowModality(QtCore.Qt.NonModal)
         status_window.resize(247, 132)
         status_window.setMaximumSize(QtCore.QSize(247, 132))
         self.verticalLayout = QtGui.QVBoxLayout(status_window)

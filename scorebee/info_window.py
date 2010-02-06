@@ -1,11 +1,11 @@
 
 from .qt import *
-from .ui.status_window import Ui_status_window
+from .ui.info_window import Ui_info_window
 
 
-class StatusWindow(QtGui.QDialog):
+class InfoWindow(QtGui.QDialog):
 
     def __init__(self, *args):
         QtGui.QDialog.__init__(self, *args)
-        self.ui = Ui_status_window()
+        self.ui = Ui_info_window()
         self.ui.setupUi(self)

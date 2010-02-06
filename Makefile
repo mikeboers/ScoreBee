@@ -8,8 +8,9 @@ scorebee/ui/%_rc.py: ui/%.qrc
 	pyrcc4-2.6 $< > $@
 
 status_window: scorebee/ui/status_window.py scorebee/ui/status_window_rc.py
+info_window: scorebee/ui/info_window.py
 
-build: status_window
+build: status_window info_window
 	# BUILD
 
 run: build
