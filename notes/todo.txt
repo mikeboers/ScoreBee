@@ -52,10 +52,13 @@ Required
 	- A document object has a filename
 	- it has it's own mp object (which it always makes sure is not dead)
 	- Each track is it's own object.
+		name, key, data
 	- Each event on the track is it's own object.
+		start frame, end frame
 	- Events that are in progress are normal events, just the main controller
 	  knows that it has to keep updating them.
-	- Need to be quickly lookup the next event start time.
+	- Need to be able to quickly lookup the next event start time.
+	- merge two when they collide
 
 - Timeline
 	- Horizontal scroll bar only affects the right part.

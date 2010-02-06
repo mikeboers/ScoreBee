@@ -2,6 +2,7 @@
 from subprocess import Popen, PIPE
 from select import select
 import math
+import os
 
 def make_property(name, conformer=str, force_get=True, force_set=True):
     
@@ -37,8 +38,9 @@ class MPlayer(object):
     
     def __init__(self, src, autoplay=False):
         
-        self.proc = Popen(['mplayer', '-slave', '-quiet', src], stdin=PIPE,
-            stderr=None, stdout=PIPE)
+        self.proc = Popen(['mplayer', '-slave', '-quiet', 
+            '-input', 'conf=' + os.path.abspath(__file__ + '/../../settings/mplayer.txt'),
+            src], stdin=PIPE, stderr=None, stdout=PIPE)
         
         self.stdin = self.proc.stdin
         self.stdout = self.proc.stdout
@@ -61,10 +63,13 @@ class MPlayer(object):
         if self.proc.poll() is not None:
             raise MPlayerDied('mplayer has died')
     
-    def __del__(self):
+    def stop(self):
         if self.is_running:
-            self.stdin.write('quit\n')
+            self._cmd('exit', 0)
             self.proc.kill()
+    
+    def __del__(self):
+        self.stop()
     
     def readable(self, pipe, timeout=0):
         self.assert_running()

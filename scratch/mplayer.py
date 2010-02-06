@@ -11,12 +11,12 @@ from scorebee.mplayer import MPlayer
 assert len(sys.argv) > 1, 'Not enough arguments.'
 
 
-mp = MPlayer(sys.argv[1])
+mp = MPlayer(sys.argv[1], autoplay=True)
 print mp
 
 time.sleep(0.5)
 
-names = 'time fps frame speed'.split()
+names = 'time frame'.split()
 
 for i in range(10):
     start_time = time.time()

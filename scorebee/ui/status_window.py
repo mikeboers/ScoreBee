@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/status_window.ui'
 #
-# Created: Sat Feb  6 13:31:56 2010
+# Created: Sat Feb  6 14:41:08 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -110,7 +110,7 @@ class Ui_status_window(object):
         QtCore.QMetaObject.connectSlotsByName(status_window)
 
     def retranslateUi(self, status_window):
-        status_window.setWindowTitle(QtGui.QApplication.translate("status_window", "ScoreBee Status", None, QtGui.QApplication.UnicodeUTF8))
+        status_window.setWindowTitle(QtGui.QApplication.translate("status_window", "ScoreBee - Status", None, QtGui.QApplication.UnicodeUTF8))
         self.time.setText(QtGui.QApplication.translate("status_window", "00:00:00", None, QtGui.QApplication.UnicodeUTF8))
         self.speed.setText(QtGui.QApplication.translate("status_window", "speed: 1.0x", None, QtGui.QApplication.UnicodeUTF8))
         self.sync.setText(QtGui.QApplication.translate("status_window", "SYNC", None, QtGui.QApplication.UnicodeUTF8))

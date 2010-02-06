@@ -8,7 +8,7 @@ from scorebee.qt import *
 from scorebee.timeline_window import TimelineWindow
 from scorebee.status_window import StatusWindow
 from scorebee.info_window import InfoWindow
-
+from scorebee.data import Document, Track, Event
 
 class App(object):
     
@@ -19,7 +19,8 @@ class App(object):
         self.status = StatusWindow(self.timeline)
         self.info = InfoWindow(self.timeline)
 
-
+        self.doc = None
+        
         data = [
             ('General Info', [
                 ('fruit', 'apple'),
@@ -68,6 +69,7 @@ class App(object):
         # help.addAction(manual)
         # help.addAction(about)
     
+        
     def run(self):
         
         if os.path.exists('settings/windows.json'):
@@ -81,8 +83,19 @@ class App(object):
         self.info.show()
         self.timeline.show()
         
+        
+        # This is just a hack for now.
+        self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
+        self.doc.mp
+        
+        
+        
+        
         self.idle_timer.start()
         self.app.exec_()
+        
+        # HACK: Kill the MPlayer
+        self.doc._mp = None
         
         window_prefs = {}
         for name in 'status', 'info', 'timeline':
