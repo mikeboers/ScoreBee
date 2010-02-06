@@ -54,7 +54,12 @@ class MPlayer(object):
         self._fps = None
         self._speed = Fraction(1, 1)
         
-        self.clear_read_buffer(0.1)
+        while self.length is None:
+            self.clear_read_buffer()
+    
+    @property
+    def frame_count(self):
+        return int(self.fps * self.length)
     
     @property
     def is_running(self):
