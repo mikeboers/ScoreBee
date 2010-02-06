@@ -56,6 +56,7 @@ class StatusWindow(QtGui.QDialog):
     def go_to_start_button(self):
         log.debug('go_to_start')
         self.mp.time = 0
+        self.app.time = 0
     
     
     def time_clicked(self):

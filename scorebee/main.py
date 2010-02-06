@@ -63,6 +63,7 @@ class App(object):
         self.last_idle = 0
         self.last_sync = 0
         self.sync_offset = 0
+        self.sync_time = 0
         self.needs_sync = True
         
         # This will be updated by the status window.
@@ -80,21 +81,24 @@ class App(object):
     
     def idleEvent(self, event):
         this_time = time.time()
-        time_delta = this_time - self.last_idle
-        self.last_idle = this_time
+        time_delta = this_time - self.last_sync
         
         if this_time - self.last_sync > SYNC_INTERVAL:
             self.needs_sync = True
         
         if not self.doc.mp.is_paused:
-            self.time += self.speed * time_delta
+            speed_offset = 1 + self.sync_offset / (self.speed * SYNC_INTERVAL)
+            print '%.3f' % speed_offset
+            
+            self.time = self.sync_time + self.speed * time_delta
+            
             if self.needs_sync:
                 
                 # SYNC!
                 new_time = self.doc.mp.time
                 self.sync_offset = new_time - self.time
-                self.status.ui.sync.setText('sync: %5.1fms' % abs(1000 * self.sync_offset))
-                self.time = new_time
+                self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
+                self.sync_time = self.time = new_time
                 
                 self.needs_sync = False
                 self.last_sync = this_time

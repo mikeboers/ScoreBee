@@ -93,7 +93,7 @@ class MPlayer(object):
     
     def _cmd(self, cmd, timeout=0.1):
         self.clear_read_buffer()
-        log.debug('cmd %r' % cmd)
+        # log.debug('cmd %r' % cmd)
         self.stdin.write(cmd + '\n')
         self.stdin.flush()
         if self.readable(self.stdout, timeout):
