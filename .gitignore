@@ -6,3 +6,9 @@
 /bin
 /include/python2.6
 /lib/python2.6
+
+/scorebee/ui/*.py
+/settings/windows.json
+
+/ui/silk
+/ui/sweetie
