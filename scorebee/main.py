@@ -10,6 +10,10 @@ from scorebee.status_window import StatusWindow
 from scorebee.info_window import InfoWindow
 from scorebee.data import Document, Track, Event
 
+
+WINDOW_NAMES = 'status', 'info', 'timeline'
+
+
 class App(object):
     
     def __init__(self, argv):
@@ -60,7 +64,19 @@ class App(object):
         file.addAction(video)
         file.addAction(data)
         # file.addAction(exit)
-
+        
+        window_menu = menubar.addMenu("Window")
+        def make_handler(name):
+            def handler():
+                window = getattr(self, name)
+                window.show()
+                window.raise_()
+            return handler
+        for name in WINDOW_NAMES:
+            action = QtGui.QAction(name.capitalize(), self.timeline)
+            connect(action, SIGNAL('triggered()'), make_handler(name))
+            window_menu.addAction(action)
+                
         #Help menu
         # about = QtGui.QAction(QtGui.QIcon('icons/about.png'), 'About CowLog', self.timeline)
         #self.connect(about, QtCore.SIGNAL('triggered()'), self.aboutAction)
@@ -98,7 +114,7 @@ class App(object):
         self.doc._mp = None
         
         window_prefs = {}
-        for name in 'status', 'info', 'timeline':
+        for name in WINDOW_NAMES:
             window_prefs[name] = dict(
                 pos=tuple(getattr(self, name).pos()),
                 size=tuple(getattr(self, name).size()),
