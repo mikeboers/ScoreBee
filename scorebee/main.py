@@ -14,30 +14,23 @@ class App(object):
         
         self.status = StatusWindow()
         self.info = InfoWindow(self.status)
-        
-        textarea = self.info.ui.textarea
-        
-        text = []
-        for header, data in [
+
+
+        data = [
             ('General Info', [
                 ('fruit', 'apple'),
                 ('key', 'a long value; ' * 5),
-                ('red', '<span style="color:red">ARRGHHH</span>')
+                ('sync', '<span style="color:red">RESYNCING...</span>'),
+                ('sync', '<span style="color:orange">TESTING...</span>'),
+                ('sync', '<span style="color:green">OK</span>'),
             ]),
             ('General Info', [
                 ('fruit', 'apple'),
                 ('key', 'a long value; ' * 5),
-                ('red', '<span style="color:red">ARRGHHH</span>')
+                ('red', '<span style="color:red">ARRGHHH</span>'),
             ])
-        ]:    
-            text.append('<h3>' + header + '</h3>')
-            text.append('<table>')
-            for pair in data:
-                text.append('<tr><td><b><pre>  %s</pre></b></td><td>:</td><td>%s</td></tr>' % (pair))
-            text.append('</table>')
-            # text.append('<br />')
-        
-        textarea.setText(''.join(text))
+        ]
+        self.info.update(data)
         
     def run(self):
         self.status.show()
