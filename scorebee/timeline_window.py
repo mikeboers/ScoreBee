@@ -17,9 +17,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ui.canvas.setMinimumSize(0, height)
         
     def resizeEvent(self, event):
-        print 'resized', event,
         size = event.size()
         width = size.width()
-        print width
         self.set_canvas_height(width/4)
         

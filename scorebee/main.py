@@ -37,6 +37,13 @@ class App(object):
         self.info.update(data)
         
         self.setup_menu()
+        self.idle_timer = QTimer()
+        self.idle_timer.setInterval(10)
+        self.idle_timer.timerEvent = self.idleEvent
+        self.idle_counter = 0
+    
+    def idleEvent(self, event):
+        pass
     
     def setup_menu(self):
         
@@ -73,6 +80,8 @@ class App(object):
         self.status.show()
         self.info.show()
         self.timeline.show()
+        
+        self.idle_timer.start()
         self.app.exec_()
         
         window_prefs = {}
