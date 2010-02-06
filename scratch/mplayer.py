@@ -17,8 +17,8 @@ print mp
 time.sleep(0.5)
 
 names = 'time fps speed'.split()
-while True:
-    time.sleep(1)
+
+for i in range(10):
     start_time = time.time()
     for name in names:
         v = getattr(mp, name)

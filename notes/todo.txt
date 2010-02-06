@@ -32,6 +32,8 @@ Required
 	
 	The time will be free running, and every couple seconds sync up with the
 	mplayer time.
+	
+	Red light if I know that the timer is out of sync.
 
 - Info window.
 	Has a number of sections that (would be nice) are collapsable. Just key

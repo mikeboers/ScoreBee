@@ -5,24 +5,25 @@ from select import select
 
 def make_property(name, conformer=str):
     
-    cmd = 'pausing_keep_force get_property %s' % name
+    get_cmd = 'pausing_keep_force get_property %s' % name
+    set_cmd = 'pausing_keep_force set_property %s' % name
     res_prefix = 'ANS_%s=' % name
     res_prefix_len = len(res_prefix)
     
     @property
     def prop(self):
-        raw = self._cmd(cmd, 1)
+        raw = self._cmd(get_cmd)
         if raw:
-            # assert raw.startswith(res_prefix)
             try:
                 v = conformer(raw[res_prefix_len:])
             except:
                 v = None
-            return (raw, v)
+            return v
     
     @prop.setter
-    def prop(self, value):
-        return None
+    def prop(self, *args):
+        cmd = set_cmd + ' ' + ' '.join(str(x) for x in args)
+        self._cmd(cmd, 0)
     
     return prop
     
@@ -39,12 +40,18 @@ class MPlayer(object):
         
         self.clear_read_buffer(0.1)
     
+    @property
+    def is_running(self):
+        return self.proc.poll() is None
+    
     def __del__(self):
-        self.stdin.write('quit')
-        self.stdin.flush()
-        self.proc.kill()
+        if self.is_running:
+            self.stdin.write('quit\n')
+            self.proc.kill()
     
     def readable(self, pipe, timeout=0):
+        if not self.is_running:
+            raise ValueError('proc has stopped')
         r, w, x = select([pipe], (), (), timeout)
         return bool(r)
     
@@ -55,7 +62,6 @@ class MPlayer(object):
     def _cmd(self, cmd, timeout=0.1):
         self.clear_read_buffer()
         self.stdin.write(cmd + '\n')
-        self.stdin.flush()
         if self.readable(self.stdout, timeout):
             return self.stdout.readline().strip()
     
