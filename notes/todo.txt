@@ -62,5 +62,8 @@ Required
 	- MAYBE have the lock/invisible in a menu instead of a button.
 
 
+Would be nice
+=============
 
+- Status window button icons update with the state they are in.
 

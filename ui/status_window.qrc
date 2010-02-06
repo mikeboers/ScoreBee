@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>sweetie/24-arrow-back.png</file>
+    <file>sweetie/24-arrow-first.png</file>
+    <file>sweetie/24-arrow-forward.png</file>
+    <file>sweetie/24-arrow-last.png</file>
+    <file>sweetie/24-arrow-next.png</file>
+    <file>sweetie/24-arrow-previous.png</file>
+    <file>sweetie/24-control-pause.png</file>
+    <file>sweetie/24-control-stop.png</file>
+    <file>silk/control_play.png</file>
+  </qresource>
+</RCC>
