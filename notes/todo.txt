@@ -1,0 +1,34 @@
+
+General
+=======
+
+- make sure to keep everything very MVC.
+- only do what is absolutely nessesary
+- make sure that keystrokes are signaled across the whole app
+- see how to get a tick event
+
+
+Required
+========
+
+
+- mplayer controller class.
+	A wrapper around subprocess. Uses the slave interface. Time how long the
+	general interaction takes.
+	
+	- disable all of the mplayer inputs as possible.
+	- .play()
+	- .pause()
+	- .is_playing / .is_paused
+	- .speed get/set
+	- .frame get/set
+	- .time  get/set
+
+- Status window.
+	Current time in frames or a float, basic playing controls. Indicator of
+	the current speed.
+	
+	The time will be free running, and every couple seconds sync up with the
+	mplayer time.
+
+
