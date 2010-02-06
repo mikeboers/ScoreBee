@@ -2,6 +2,7 @@
 import sys
 import json
 import os
+import logging
 
 from scorebee.qt import *
 
@@ -9,6 +10,9 @@ from scorebee.timeline_window import TimelineWindow
 from scorebee.status_window import StatusWindow
 from scorebee.info_window import InfoWindow
 from scorebee.data import Document, Track, Event
+
+
+log = logging.getLogger(__name__)
 
 
 WINDOW_NAMES = 'status', 'info', 'timeline'
@@ -20,7 +24,7 @@ class App(object):
         self.app = QtGui.QApplication(argv)
         
         self.timeline = TimelineWindow()
-        self.status = StatusWindow(self.timeline)
+        self.status = StatusWindow(self, self.timeline)
         self.info = InfoWindow(self.timeline)
 
         self.doc = None
@@ -111,10 +115,8 @@ class App(object):
         self.doc.append(Track('Better one', 'e', [
             (25, 26), (70, 71)
         ]))
-        print self.doc
-        
-        
-        
+        # This starts up the player.
+        log.debug('%d frames' % self.doc.mp.frame_count)
         
         self.idle_timer.start()
         self.app.exec_()
@@ -133,4 +135,5 @@ class App(object):
 app = App(sys.argv)
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     app.run()
