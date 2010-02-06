@@ -36,6 +36,31 @@ class App(object):
         ]
         self.info.update(data)
         
+        self.setup_menu()
+    
+    def setup_menu(self):
+        
+        video = QtGui.QAction(QtGui.QIcon('ui/silk/accept.png'), 'Open Video', self.timeline)
+        data = QtGui.QAction(QtGui.QIcon('icons/data.png'), 'Choose Datafile', self.timeline)
+        # exit = QtGui.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self.timeline)
+        #self.connect(exit, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
+        #self.connect(video, QtCore.SIGNAL('triggered()'), self.videodialog)
+        #self.connect(data, QtCore.SIGNAL('triggered()'), self.datadialog)
+        menubar = self.timeline.menuBar()
+        file = menubar.addMenu("&File")
+        help = menubar.addMenu("Help")
+        file.addAction(video)
+        file.addAction(data)
+        # file.addAction(exit)
+
+        #Help menu
+        # about = QtGui.QAction(QtGui.QIcon('icons/about.png'), 'About CowLog', self.timeline)
+        #self.connect(about, QtCore.SIGNAL('triggered()'), self.aboutAction)
+        # manual = QtGui.QAction(QtGui.QIcon('icons/help.png'), 'CowLog Help', self.timeline)
+        #self.connect(manual, QtCore.SIGNAL('triggered()'), self.helpAction)
+        # help.addAction(manual)
+        # help.addAction(about)
+    
     def run(self):
         
         if os.path.exists('settings/windows.json'):
