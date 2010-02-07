@@ -85,24 +85,26 @@ class App(object):
         if this_time - self.last_sync > SYNC_INTERVAL:
             self.needs_sync = True
         
+        time_changed = False
+        
         if not self.doc.mp.is_paused:
             # speed_offset = 1 + self.sync_offset / (self.doc.mp.speed * SYNC_INTERVAL)
             self.time = self.sync_time + self.doc.mp.speed * time_delta
+            time_changed = True
             
-            if self.needs_sync:
-                
-                # SYNC!
-                new_time = self.doc.mp.time
-                self.sync_offset = new_time - self.time
-                self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
-                self.sync_time = self.time = new_time
-                
-                self.needs_sync = False
-                self.last_sync = this_time
-            
-            self.timeline.repaint()
+        if self.needs_sync:
+            # SYNC!
+            new_time = self.doc.mp.time
+            self.sync_offset = new_time - self.time
+            self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
+            self.sync_time = self.time = new_time
+            self.needs_sync = False
+            self.last_sync = this_time
+            time_changed = True
         
-        self.status.set_time(self.time)
+        if time_changed:
+            self.timeline.time_changed()
+            self.status.set_time(self.time)
     
     def setup_menu(self):
         

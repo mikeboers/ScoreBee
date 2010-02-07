@@ -75,7 +75,12 @@ class TimelineWindow(QtGui.QMainWindow):
         self.h_scrollbar = QScrollBar(Qt.Horizontal, self)
         self.h_scrollbar.setMaximum(0) # Disable it.
         connect(self.h_scrollbar, SIGNAL('valueChanged(int)'), self.layout)
-    
+        
+        self.ruler_line = QFrame(self)
+        self.ruler_line.setFrameShape(QFrame.HLine)
+        self.ruler_line.setFrameShadow(QFrame.Sunken)
+        self.ruler_line.setLineWidth(2)
+        
         self.header_line = QtGui.QFrame(self)
         self.header_line.setFrameShape(QFrame.VLine)
         self.header_line.setFrameShadow(QFrame.Sunken)
@@ -83,6 +88,10 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_line.setCursor(Qt.SizeHorCursor)
         self.header_line.mousePressEvent = lambda e: None # Trick it into giving us the drag.
         self.header_line.mouseMoveEvent = self.header_line_mouseMoveEvent
+        
+        self.playhead_container = QWidget(self)
+        self.playhead = QWidget(self.playhead_container)
+        self.playhead.paintEvent = self.playhead_paintEvent
         
         self.resize(600, 300)
         
@@ -123,6 +132,8 @@ class TimelineWindow(QtGui.QMainWindow):
     def resizeEvent(self, event):
         self.layout()
     
+    def time_changed(self):
+        self.playhead_layout()
     
     def layout(self, event=None):
         
@@ -153,7 +164,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ruler.setGeometry(-h_offset, 0, dw, RULER_HEIGHT) # This only need happen once.
         
         self.header_line.setGeometry(self.header_width - 2, -2, 4, h + 4)
-        
+        self.ruler_line .setGeometry(0, RULER_HEIGHT - 2, w, 4)
         # Scroll bars should be along the bottom and the right side.
         self.h_scrollbar.setGeometry(self.header_width, h-SCROLLBAR_WIDTH, w - self.header_width - SCROLLBAR_WIDTH, SCROLLBAR_WIDTH)
         self.v_scrollbar.setGeometry(w-SCROLLBAR_WIDTH, RULER_HEIGHT, SCROLLBAR_WIDTH, h - SCROLLBAR_WIDTH - RULER_HEIGHT)
@@ -170,6 +181,10 @@ class TimelineWindow(QtGui.QMainWindow):
             track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
             track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
             track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
+        
+        self.playhead_layout()
+    
+
 
     def header_line_mouseMoveEvent(self, event):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
@@ -209,7 +224,38 @@ class TimelineWindow(QtGui.QMainWindow):
                     p.drawText(QPoint(x + 2, 12), txt)
         finally:
             p.end
+        
+    def playhead_layout(self):
+        if self.app.doc is not None:
+            # self.playhead.setStyleSheet('background-color:red')
+            frame = int(self.app.time * self.app.doc.mp.fps)
+            
+            x = self.zoom(frame - self.h_scrollbar.value())
+            
+            self.playhead_container.setGeometry(
+                self.header_width,
+                0,
+                self.size().width() - self.header_width - SCROLLBAR_WIDTH,
+                self.size().height() - SCROLLBAR_WIDTH
+            )
+            self.playhead.setGeometry(x - 8, 0, 8*2 + 1, self.size().height())
     
+    def playhead_paintEvent(self, event):
+        p = QtGui.QPainter(self.playhead)
+        try:
+            p.setRenderHint(QtGui.QPainter.Antialiasing)
+            p.setPen(QColor(128, 0, 0))
+            p.setBrush(QColor(128, 0, 0, 128))
+            
+            p.drawPolygon(
+                QPoint(0, 15),
+                QPoint(8*2+1, 15),
+                QPoint(8, RULER_HEIGHT - 2)            
+            )
+            p.drawLine(8, RULER_HEIGHT - 1, 8, self.size().height())
+            
+        finally:
+            p.end
 
 # 
 # class TimelineWindow(QtGui.QMainWindow):
