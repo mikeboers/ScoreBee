@@ -85,7 +85,8 @@ class TimelineWindow(QtGui.QMainWindow):
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_mode_change_event)
         connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_event)
-        
+        connect(self.app, SIGNAL('new_event'), self.handle_new_event_signal)
+        connect(self.app, SIGNAL('updated_event'), self.handle_updated_event_signal)
     
     def apply_zoom(self, value):
         """Apply the current zoom level to some data."""
@@ -247,13 +248,17 @@ class TimelineWindow(QtGui.QMainWindow):
             
             for event in track:
                 if event.ui is None:
-                    event.ui = EventUI(self, event, track.ui.data)
-                    event.ui.show()
-                event.ui.layout()
+                    self.handle_new_event_signal(track, event)
         
         self.playhead_layout()
     
-
+    def handle_new_event_signal(self, track, event):
+        event.ui = ui = EventUI(self, event, track.ui.data)
+        ui.show()
+        ui.layout()
+    
+    def handle_updated_event_signal(self, event):
+        event.ui.layout()
 
     def header_line_mouseMoveEvent(self, event):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))

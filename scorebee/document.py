@@ -17,7 +17,7 @@ class Event(QObject):
     
     @property
     def length(self):
-        return self.end - self.start if self.end is not None else None
+        return self.end - self.start if self.end is not None else 0
     
     def __repr__(self):
         return 'Event(%r, %r)' % (self.start, self.end)
@@ -60,7 +60,7 @@ class Track(QObject):
     
     def add_event(self, event):
         assert isinstance(event, Event)
-        insert(self._events, event)
+        insort(self._events, event)
     
     def search_index(self, value):
         return bisect(self._events, value)

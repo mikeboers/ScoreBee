@@ -59,7 +59,8 @@ class Application(QObject):
         
         # Some state to keep track of which keys are pressed.
         self.pressed_keys = set()
-        self.track_keys = set()
+        self.key_to_track = {}
+        self.key_to_open_event = {}
     
     def setup_menu(self):
         menubar = self.timeline.menuBar()
@@ -106,7 +107,7 @@ class Application(QObject):
         self._mp = None # Forces a new mplayer with the new video.
         self.mp.time = 0
         
-        self.track_keys = set(ord(track.key.upper()) for track in doc)
+        self.key_to_track = dict((track.key_code, track) for track in doc)
         self.emit(SIGNAL('doc_changed'))
         
         # We need the interface to be updated. This is the likely the best way
@@ -166,6 +167,10 @@ class Application(QObject):
             )
         json.dump(window_prefs, open('settings/windows.json', 'w'), indent=4)
     
+    @property
+    def frame(self):
+        return int(self.time * self.mp.fps)
+    
     def main_loop(self, event=None, force_sync=False):
         """Event that is triggered every couple milliseconds.
 
@@ -181,6 +186,10 @@ class Application(QObject):
         elif not self.mp.is_paused:
             self.time = self.mp_time_at_sync + self.mp.speed * time_delta
             self.emit(SIGNAL('time_changed'))
+            
+        for event in self.key_to_open_event.values():
+            event.end = self.frame
+            self.emit(SIGNAL('updated_event'), event)
 
 
     def sync(self):
@@ -202,12 +211,28 @@ class Application(QObject):
     def keyPressEvent(self, event):
         key = event.key()
         self.pressed_keys.add(key)
-        print 'pressed:', self.pressed_keys
+        
+        if key in self.key_to_track and key not in self.key_to_open_event:
+            track = self.key_to_track[key]
+            self.sync()
+            frame = self.frame
+            event = Event(frame, frame)
+            track.add_event(event)
+            self.key_to_open_event[key] = event
+            self.emit(SIGNAL('new_event'), track, event)
+            
 
     def keyReleaseEvent(self, event):
+        
         key = event.key()
-        if not (key in self.track_keys and Qt.Key_Shift in self.pressed_keys):
+        if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):
             self.pressed_keys.remove(key)
+            event = self.key_to_open_event.pop(key, None)
+            if event is not None:
+                self.sync()
+                event.end = self.frame
+                self.emit(SIGNAL('updated_event'), event)
+            
         print 'still..:', self.pressed_keys
 
 
