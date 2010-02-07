@@ -27,7 +27,7 @@ class StatusWindow(QtGui.QDialog):
     
     @property
     def mp(self):
-        return self.app.doc.mp
+        return self.app.mp
     
     def pause_button(self):
         log.debug('pause')

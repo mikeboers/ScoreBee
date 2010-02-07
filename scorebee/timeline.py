@@ -102,11 +102,11 @@ class TimelineWindow(QtGui.QMainWindow):
     
     @property
     def mp(self):
-        return self.app.doc.mp
+        return self.app.mp
     
     def doc_changed(self):
         # TODO: detroy the old tracks
-        self.tracks = list(self.app.doc)
+        self.tracks = list(self.app.doc.tracks)
         for i, track in enumerate(self.tracks):
             
             track.ui = ui = UIData() # This is just a generic object.
@@ -150,8 +150,8 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Data height/width.
         if self.app.doc:
-            dh = TRACK_HEIGHT * len(self.app.doc)
-            dw = self.zoom(self.app.doc.mp.frame_count)
+            dh = TRACK_HEIGHT * len(self.app.doc.tracks)
+            dw = self.zoom(self.app.mp.frame_count)
         else:
             dh = dw = 0
     
@@ -198,7 +198,7 @@ class TimelineWindow(QtGui.QMainWindow):
     def ruler_paintEvent(self, event):
         
         # TODO: This does not use the zoom.
-        FPS = int(self.app.doc.mp.fps)
+        FPS = int(self.app.mp.fps)
         STEP = FPS
         x = event.rect().x()
         w = event.rect().width()
@@ -238,9 +238,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
         
         if self.clicked_in_ruler:
-            self.was_playing = not self.app.doc.mp.is_paused
+            self.was_playing = not self.app.mp.is_paused
             if self.was_playing:
-                self.app.doc.mp.pause()
+                self.app.mp.pause()
             self.ruler_mouseMoveEvent(event)
     
     def mouseMoveEvent(self, event):
@@ -250,22 +250,22 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def mouseReleaseEvent(self, event):        
         if self.clicked_in_ruler and self.was_playing:
-            self.app.doc.mp.play()
+            self.app.mp.play()
     
     def ruler_mouseMoveEvent(self, event):
         # We only need to suptrack the header width cause this is not directly
         # recieving the mouse event.
         f = event.pos().x() - self.header_width + self.h_scrollbar.value()
         f = self.unzoom(f)
-        t = f / self.app.doc.mp.fps
-        self.app.time = self.app.doc.mp.time = t
+        t = f / self.app.mp.fps
+        self.app.time = self.app.mp.time = t
         self.app.idleEvent(None) # HUGE HACK!
     
         
     def playhead_layout(self):
         if self.app.doc is not None:
             # self.playhead.setStyleSheet('background-color:red')
-            frame = int(self.app.time * self.app.doc.mp.fps)
+            frame = int(self.app.time * self.app.mp.fps)
             
             x = self.zoom(frame - self.h_scrollbar.value())
             
@@ -315,7 +315,7 @@ class TimelineWindow(QtGui.QMainWindow):
 #     
 #     @property
 #     def mp(self):
-#         return self.app.doc.mp
+#         return self.app.mp
 #     
 #     def doc_changed(self):    
 #         height = RULER_HEIGHT + TRACK_HEIGHT * len(self.app.doc)

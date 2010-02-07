@@ -5,33 +5,41 @@ import os
 import logging
 import time
 
-from scorebee.qt import *
-
+from .qt import *
 from .timeline import TimelineWindow
 from .status import StatusWindow
 from .info import InfoWindow
-from .data import Document, Track, Event
+from .document import Document, Track, Event
+from .mplayer import MPlayer
 from .util import next_time_mode, format_time
+from . import config as cfg
+
 
 log = logging.getLogger(__name__)
 
 
 WINDOW_NAMES = 'status', 'info', 'timeline'
 
-SYNC_INTERVAL = 0.5
 
 
-
-class Controller(object):
+class Application(object):
     
     def __init__(self, argv):
         self.app = QtGui.QApplication(argv)
         
+        # Build up the three windows.
         self.timeline = TimelineWindow(self)
-        self.status = StatusWindow(self, self.timeline)
-        self.info = InfoWindow(self.timeline)
+        self.status   = StatusWindow(self, self.timeline)
+        self.info     = InfoWindow(self, self.timeline)
 
+        # The document is accessed through a property because we need to
+        # signal rebuilding the api whenever it is changed.
         self._doc = None
+        self._mp = None
+        
+        self.setup_menu()
+        
+        
         
         data = [
             ('General Info', [
@@ -49,7 +57,6 @@ class Controller(object):
         ]
         self.info.update(data)
         
-        self.setup_menu()
         
         
         self.idle_timer = QTimer()
@@ -68,8 +75,14 @@ class Controller(object):
         self.pressed_keys = set()
         self.track_keys = set()
     
+    @property
+    def mp(self):
+        if self._mp is None or not self._mp.is_running:
+            self._mp = MPlayer(self.doc.src)
+        return self._mp
+    
     def format_time(self, time=None):
-        return format_time(self.time if time is None else time, self.doc.mp.fps, self.time_mode)
+        return format_time(self.time if time is None else time, self.mp.fps, self.time_mode)
     
     def next_time_mode(self):
         self.time_mode = next_time_mode(self.time_mode)
@@ -84,7 +97,7 @@ class Controller(object):
         self._doc = doc
         self.status.repaint()
         self.timeline.doc_changed()
-        self.track_keys = set(ord(track.key.upper()) for track in doc)
+        self.track_keys = set(ord(track.key.upper()) for track in doc.tracks)
     
     
     
@@ -94,7 +107,7 @@ class Controller(object):
         this_time = time.time()
         time_delta = this_time - self.last_sync
         
-        if this_time - self.last_sync > SYNC_INTERVAL:
+        if this_time - self.last_sync > cfg.SYNC_INTERVAL:
             self.needs_sync = True
         
         time_changed = False
@@ -102,14 +115,14 @@ class Controller(object):
         if self.needs_sync:
             self.sync()
         
-        elif not self.doc.mp.is_paused:
-            # speed_offset = 1 + self.sync_offset / (self.doc.mp.speed * SYNC_INTERVAL)
-            self.time = self.sync_time + self.doc.mp.speed * time_delta
+        elif not self.mp.is_paused:
+            # speed_offset = 1 + self.sync_offset / (self.mp.speed * cfg.SYNC_INTERVAL)
+            self.time = self.sync_time + self.mp.speed * time_delta
             self.signal_time_changed()
             
     
     def sync(self):
-        new_time = self.doc.mp.time
+        new_time = self.mp.time
         self.sync_offset = new_time - self.time
         self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
         self.sync_time = self.time = new_time
@@ -187,11 +200,11 @@ class Controller(object):
         # This is just a hack for now.
         doc = Document('/Users/mikeboers/Desktop/example.MOV')
         # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
-        doc.append(Track('A behaviour', 'q', [
+        doc.tracks.append(Track('A behaviour', 'q', [
             Event(10, 15), Event(50, 65), Event(500, 600)
         ]))
-        doc.append(Track('Nothin here', 'w', []))
-        doc.append(Track('Better one', 'e', [
+        doc.tracks.append(Track('Nothin here', 'w', []))
+        doc.tracks.append(Track('Better one', 'e', [
             Event(25, 26), Event(70, 71), Event(700, 701)
         ]))
         

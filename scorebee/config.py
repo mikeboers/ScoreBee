@@ -1,0 +1,2 @@
+
+SYNC_INTERVAL = 0.5

@@ -1,6 +1,8 @@
 
+from .qt import *
 
-class Event(Qobject):
+
+class Event(QObject):
     
     def __init__(self, start, end=None):
         self.start = start
@@ -10,7 +12,7 @@ class Event(Qobject):
         return 'Event(%r, %r)' % (self.start, self.end)
 
 
-class Track(Qobject):
+class Track(QObject):
     
     def __init__(self, name, key, events):
         self.name = name
@@ -19,20 +21,20 @@ class Track(Qobject):
     
     @property
     def key(self):
-        return self.key
+        return self._key
     
     @key.setter
     def key(self, v):
         assert isinstance(v, str)
         assert len(v) == 1
-        self._str = v.upper()
+        self._key = v.upper()
     
     @property
     def key_code(self):
-        return ord(self._key
+        return ord(self._key)
 
 
-class Document(Qobject):
+class Document(QObject):
     
     def __init__(self, src, tracks=None):
         self.src = src
