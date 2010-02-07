@@ -143,6 +143,10 @@ class MPlayer(object):
         if self._is_paused:
             self._cmd('pause')
             self._is_paused = False
+    
+    def step(self):
+        self._is_paused = True
+        self._cmd('pausing frame_step')
 
     def stop(self):
         """Stop playing and kill the process."""

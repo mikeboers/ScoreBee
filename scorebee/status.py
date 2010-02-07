@@ -39,9 +39,7 @@ class StatusWindow(QtGui.QDialog):
     
     def step_button(self):
         log.debug('step')
-        if not self.mp.is_paused:
-            self.mp.pause()
-        self.mp._cmd('frame_step')
+        self.app.mp.step()
         self.app.sync()
         
     def fast_forward_button(self):
