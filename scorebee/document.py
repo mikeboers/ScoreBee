@@ -1,4 +1,8 @@
 
+
+from bisect import bisect, insort
+
+
 from .qt import *
 
 
@@ -17,6 +21,17 @@ class Event(QObject):
     
     def __repr__(self):
         return 'Event(%r, %r)' % (self.start, self.end)
+    
+    def __lt__(self, other):
+        if isinstance(other, Event):
+            return self.start < other.start
+        return self.start < other
+        
+    def __gt__(self, other):
+        if isinstance(other, Event):
+            return self.start > other.start
+        return self.start > other
+        
 
 
 class Track(QObject):
@@ -42,6 +57,13 @@ class Track(QObject):
     
     def __iter__(self):
         return iter(self._events)
+    
+    def add_event(self, event):
+        assert isinstance(event, Event)
+        insert(self._events, event)
+    
+    def search_index(self, value):
+        return bisect(self._events, value)
 
 
 class Document(QObject):
@@ -61,3 +83,18 @@ class Document(QObject):
 
 
 
+if __name__ == '__main__':
+    import time
+    start_time = time.time()
+    
+    l = []
+    insort(l, Event(1))
+    insort(l, Event(2))
+    insort(l, Event(3))
+    insort(l, Event(1.5))
+    insort(l, Event(2.5))
+    insort(l, Event(4))
+    
+    print l
+    print bisect(l, 1.75)
+    print time.time() - start_time
