@@ -64,6 +64,8 @@ class App(object):
         # This will be updated by the status window.
         self.time = 0
         self.time_mode = next_time_mode()
+        
+        self.pressed_keys = set()
     
     def format_time(self, time=None):
         return format_time(self.time if time is None else time, self.doc.mp.fps, self.time_mode)
@@ -149,7 +151,10 @@ class App(object):
         # help.addAction(manual)
         # help.addAction(about)
     
-        
+    
+    def keyPressEvent(self, event):
+        print event.key()
+    
     def run(self):
         
         if os.path.exists('settings/windows.json'):
@@ -160,11 +165,14 @@ class App(object):
                 window.resize(*data['size'])
             
         self.status.show()
-        self.info.show()
+        self.info.show()     
+        self.timeline.layout() 
         self.timeline.show()
-        self.timeline.repaint()
         
-        
+        for name in WINDOW_NAMES:
+            window = getattr(self, name)
+            window.keyPressEvent = self.keyPressEvent
+            window.keyReleaseEvent = self.keyReleaseEvent
         
         # This is just a hack for now.
         self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
@@ -191,6 +199,16 @@ class App(object):
                 size=tuple(getattr(self, name).size()),
             )
         json.dump(window_prefs, open('settings/windows.json', 'w'), indent=4)
+    
+    def keyPressEvent(self, event):
+        key = event.key()
+        self.pressed_keys.add(key)
+        print self.pressed_keys
+        
+    def keyReleaseEvent(self, event):
+        key = event.key()
+        self.pressed_keys.remove(key)
+        print self.pressed_keys
 
 app = App(sys.argv)
 
