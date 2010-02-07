@@ -69,3 +69,8 @@ Would be nice
 
 - MPlayer property getting more robust with more error checking. .get_fps(...)
 	has explicit timeout, and throws and exception if it doesnt work.
+
+BUGS
+====
+
+- dragging around the timeline sometimes results in the mp being paused, but the controller thinking it is not.

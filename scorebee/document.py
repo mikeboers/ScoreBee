@@ -1,54 +1,40 @@
 
 
-from .mplayer import MPlayer
-
-
-class Event(list):
+class Event(Qobject):
     
     def __init__(self, start, end=None):
-        list.__init__(self, [start, end])
+        self.start = start
+        self.end = end
     
     def __repr__(self):
-        return 'Event(%s, %s)' % tuple(self)
-    
-    @property
-    def start(self):
-        return self[0]
-    
-    @start.setter
-    def start(self, value):
-        self[0] = value
-    
-    @property
-    def end(self):
-        return self[1]
-    
-    @end.setter
-    def end(self, value):
-        self[1] = value
+        return 'Event(%r, %r)' % (self.start, self.end)
 
 
-class Track(list):
+class Track(Qobject):
     
-    def __init__(self, name, key, data=None):
+    def __init__(self, name, key, events):
         self.name = name
         self.key = key
-        self.key_code = ord(key.upper())
-        if data:
-            list.__init__(self, data)
+        self.events = events or []
+    
+    @property
+    def key(self):
+        return self.key
+    
+    @key.setter
+    def key(self, v):
+        assert isinstance(v, str)
+        assert len(v) == 1
+        self._str = v.upper()
+    
+    @property
+    def key_code(self):
+        return ord(self._key
 
 
-class Document(list):
+class Document(Qobject):
     
     def __init__(self, src, tracks=None):
         self.src = src
-        self._mp = None
-        if tracks:
-            list.__init__(self, tracks)
-    
-    @property
-    def mp(self):
-        if self._mp is None or not self._mp.is_running:
-            self._mp = MPlayer(self.src)
-        return self._mp
+        self.tracks = tracks or []
 

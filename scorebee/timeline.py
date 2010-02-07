@@ -4,7 +4,6 @@ from fractions import Fraction
 import random
 
 from .qt import *
-from .ui.timeline_window import Ui_timeline_window
 
 
 class UIData(object):
