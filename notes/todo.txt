@@ -4,18 +4,16 @@ General
 
 - make sure to keep everything very MVC.
 - only do what is absolutely nessesary
-- make sure that keystrokes are signaled across the whole app
-- see how to get a tick event
+
+
 
 
 Required
 ========
 
-
 - controller
 	- timer should be based off os observed speed not requested speed
-	- single step button
-	- any way to emulate single step backwards?
+	- should have the mp, NOT the document.
 
 - Status window.
 	Current time in frames or a float, basic playing controls. Indicator of
