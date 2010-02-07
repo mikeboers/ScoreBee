@@ -34,6 +34,9 @@ class TimelineWindow(QtGui.QMainWindow):
     def zoom(self, v):
         return int(v * Fraction(2, 1) ** self.zoom_level)
     
+    def unzoom(self, v):
+        return float(float(v) / Fraction(2, 1) ** self.zoom_level)
+    
     def build_base_gui(self):
           
         
@@ -64,11 +67,14 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ruler_container = QWidget(self)
         self.ruler_container.setStyleSheet('background-color:rgb(255, 138, 0)')
         self.ruler = QWidget(self.ruler_container)
+        self.ruler.paintEvent = self.ruler_paintEvent
     
         self.v_scrollbar = QScrollBar(Qt.Vertical, self)
         self.v_scrollbar.setMaximum(0) # Disable it.
+        connect(self.v_scrollbar, SIGNAL('valueChanged(int)'), self.layout)
         self.h_scrollbar = QScrollBar(Qt.Horizontal, self)
         self.h_scrollbar.setMaximum(0) # Disable it.
+        connect(self.h_scrollbar, SIGNAL('valueChanged(int)'), self.layout)
     
         self.header_line = QtGui.QFrame(self)
         self.header_line.setFrameShape(QFrame.VLine)
@@ -118,7 +124,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.layout()
     
     
-    def layout(self):
+    def layout(self, event=None):
         
         # Some convenient sizes.
         w = self.size().width()
@@ -126,6 +132,8 @@ class TimelineWindow(QtGui.QMainWindow):
         hw = self.header_width # Header width
         tw = w - hw - SCROLLBAR_WIDTH # Track width
         th = h - RULER_HEIGHT - SCROLLBAR_WIDTH
+        h_offset = self.h_scrollbar.value()
+        v_offset = self.v_scrollbar.value()
         
         # Data height/width.
         if self.app.doc:
@@ -142,7 +150,7 @@ class TimelineWindow(QtGui.QMainWindow):
         # Adjust the time display and the ruler container width.
         self.time.setGeometry(0, 0, hw, RULER_HEIGHT)
         self.ruler_container.setGeometry(hw, 0, tw, RULER_HEIGHT)
-        self.ruler.setGeometry(0, 0, dw, RULER_HEIGHT) # This only need happen once.
+        self.ruler.setGeometry(-h_offset, 0, dw, RULER_HEIGHT) # This only need happen once.
         
         self.header_line.setGeometry(self.header_width - 2, -2, 4, h + 4)
         
@@ -152,21 +160,55 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Update the scrollbar maximums and step sizes to go along with the
         # new size and data that we have.
-        self.h_scrollbar.setMaximum(dw if dw > tw else 0)
+        self.h_scrollbar.setMaximum(dw - tw if dw > tw else 0)
         self.h_scrollbar.setPageStep(tw)
-        self.v_scrollbar.setMaximum(dh if dh > th else 0)
+        self.v_scrollbar.setMaximum(dh - th if dh > th else 0)
         self.v_scrollbar.setPageStep(th)
         
         # Track headers
         for i, track in enumerate(self.tracks):
             track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
-            print track.ui.container.pos()
             track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
             track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
 
     def header_line_mouseMoveEvent(self, event):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
         self.layout()
+    
+    def ruler_paintEvent(self, event):
+        
+        # TODO: This does not use the zoom.
+        FPS = int(self.app.doc.mp.fps)
+        STEP = FPS
+        x = event.rect().x()
+        w = event.rect().width()
+        
+        min_t = x / STEP / 2 * 2 - 2
+        min_x = min_t * STEP
+        
+        steps = w / STEP + 6
+        
+        p = QtGui.QPainter(self.ruler)
+        
+        try:
+            p.setRenderHint(QtGui.QPainter.Antialiasing)
+            
+            font = QFont()
+            font.setFamily("Courier New")
+            font.setPointSize(12)
+            p.setFont(font)
+            
+            for i in xrange(steps):
+                x = min_x + STEP * i
+                if i % 2:
+                    p.drawLine(x, RULER_HEIGHT/2, x, RULER_HEIGHT)
+                else:    
+                    p.drawLine(x, 4, x, RULER_HEIGHT)
+                    p.setPen(QColor(0))
+                    txt = str(min_t + i)
+                    p.drawText(QPoint(x + 2, 12), txt)
+        finally:
+            p.end
     
 
 # 
