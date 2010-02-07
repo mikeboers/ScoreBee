@@ -7,6 +7,9 @@ class Event(QObject):
     def __init__(self, start, end=None):
         self.start = start
         self.end = end
+        
+        # This will hold the ui objects.
+        self.ui = None
     
     @property
     def length(self):
@@ -21,7 +24,7 @@ class Track(QObject):
     def __init__(self, name, key, events):
         self.name = name
         self.key = key
-        self.events = events or []
+        self._events = sorted(events) or []
     
     @property
     def key(self):
@@ -36,11 +39,25 @@ class Track(QObject):
     @property
     def key_code(self):
         return ord(self._key)
+    
+    def __iter__(self):
+        return iter(self._events)
 
 
 class Document(QObject):
     
     def __init__(self, src, tracks=None):
         self.src = src
-        self.tracks = tracks or []
+        self._tracks = tracks or []
+    
+    def __iter__(self):
+        return iter(self._tracks)
+    
+    def __len__(self):
+        return len(self._tracks)
+    
+    def add_track(self, track):
+        self._tracks.append(track)
+
+
 

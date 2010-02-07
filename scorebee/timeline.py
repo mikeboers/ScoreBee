@@ -53,11 +53,11 @@ class EventUI(QWidget):
             p.setBrush(self.pen_color.lighter(125))
             
             p.drawLine(8, TRACK_HEIGHT/2, 8 + width, TRACK_HEIGHT/2)
-            p.drawLine(8 + width + 1, 10, 8 + width + 1, TRACK_HEIGHT - 10)
+            p.drawLine(8 + width + 1, 12, 8 + width + 1, TRACK_HEIGHT - 12)
             
             pen.setWidth(2)
             p.setPen(pen)
-            p.drawEllipse(QPoint(8, TRACK_HEIGHT/2), 7, 7)
+            p.drawEllipse(QPoint(8, TRACK_HEIGHT/2), 5, 5)
         
         finally:
             p.end()
@@ -170,7 +170,7 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def handle_doc_changed_event(self):
         # TODO: detroy the old tracks
-        self.tracks = list(self.app.doc.tracks)
+        self.tracks = list(self.app.doc)
         for i, track in enumerate(self.tracks):
             
             track.ui = ui = UIData() # This is just a generic object.
@@ -211,7 +211,7 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Data height/width.
         if self.app.doc:
-            dh = TRACK_HEIGHT * len(self.app.doc.tracks)
+            dh = TRACK_HEIGHT * len(self.app.doc)
             dw = self.apply_zoom(self.app.mp.frame_count)
         else:
             dh = dw = 0
@@ -245,8 +245,8 @@ class TimelineWindow(QtGui.QMainWindow):
             track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
             track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
             
-            for event in track.events:
-                if not hasattr(event, 'ui'):
+            for event in track:
+                if event.ui is None:
                     event.ui = EventUI(self, event, track.ui.data)
                     event.ui.show()
                 event.ui.layout()
