@@ -2,12 +2,10 @@
 import logging
 
 from .qt import *
-from .ui.status_window import Ui_status_window
+from .ui.status_window import Ui_status_window as UI
+
 
 log = logging.getLogger(__name__)
-
-
-
 
 
 class StatusWindow(QtGui.QDialog):
@@ -16,7 +14,7 @@ class StatusWindow(QtGui.QDialog):
         QtGui.QDialog.__init__(self, *args)
         self.app = app
         
-        self.ui = Ui_status_window()
+        self.ui = UI()
         self.ui.setupUi(self)
         
         self.ui.time.mousePressEvent = self.time_mousePress
@@ -24,6 +22,9 @@ class StatusWindow(QtGui.QDialog):
         # Connect all the buttons.
         for name in 'pause play step fast_forward rewind go_to_start'.split():
             connect(getattr(self.ui, name), SIGNAL('clicked()'), getattr(self, '%s_button' % name))
+        
+        connect(self.app, SIGNAL('time_changed'),      self.handle_time_change_event)
+        connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_event)
     
     @property
     def mp(self):
@@ -76,7 +77,7 @@ class StatusWindow(QtGui.QDialog):
         self.mp.speed = value
         self.ui.speed.setText('speed: %sx' % self.speed)
     
-    def time_changed(self):
+    def handle_time_change_event(self):
         time = self.app.time
         self.ui.time.setText(self.app.format_time())
         

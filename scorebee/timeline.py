@@ -31,6 +31,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.build_base_gui()
         
         self.clicked_in_ruler = False
+        
+        connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
+        connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_mode_change_event)
     
     def zoom(self, v):
         return int(v * Fraction(2, 1) ** self.zoom_level)
@@ -133,9 +136,6 @@ class TimelineWindow(QtGui.QMainWindow):
     def resizeEvent(self, event):
         self.layout()
     
-    def time_changed(self):
-        self.time.setText(self.app.format_time())
-        self.playhead_layout()
     
     def layout(self, event=None):
         
@@ -192,7 +192,11 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
         self.layout()
     
-    def time_mode_changed(self):
+    def handle_time_change_event(self):
+        self.time.setText(self.app.format_time())
+        self.playhead_layout()
+        
+    def handle_time_mode_change_event(self):
         self.ruler.repaint()
     
     def ruler_paintEvent(self, event):

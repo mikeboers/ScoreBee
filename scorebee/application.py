@@ -22,9 +22,12 @@ WINDOW_NAMES = 'status', 'info', 'timeline'
 
 
 
-class Application(object):
+class Application(QObject):
     
     def __init__(self, argv):
+        
+        QObject.__init__(self)
+        
         self.app = QtGui.QApplication(argv)
         
         # Build up the three windows.
@@ -86,7 +89,7 @@ class Application(object):
     
     def next_time_mode(self):
         self.time_mode = next_time_mode(self.time_mode)
-        self.signal_time_mode_changed()
+        self.emit(SIGNAL('time_mode_changed'), ())
     
     @property
     def doc(self):
@@ -118,7 +121,7 @@ class Application(object):
         elif not self.mp.is_paused:
             # speed_offset = 1 + self.sync_offset / (self.mp.speed * cfg.SYNC_INTERVAL)
             self.time = self.sync_time + self.mp.speed * time_delta
-            self.signal_time_changed()
+            self.emit(SIGNAL('time_changed'), ())
             
     
     def sync(self):
@@ -128,15 +131,7 @@ class Application(object):
         self.sync_time = self.time = new_time
         self.needs_sync = False
         self.last_sync = time.time()
-        self.signal_time_changed()
-    
-    def signal_time_changed(self):
-        self.timeline.time_changed()
-        self.status.time_changed()
-    
-    def signal_time_mode_changed(self):
-        self.timeline.time_mode_changed()
-        self.status.time_changed()
+        self.emit(SIGNAL('time_changed'), ())
     
     def setup_menu(self):
         
