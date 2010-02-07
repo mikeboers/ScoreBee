@@ -7,9 +7,9 @@ import time
 
 from scorebee.qt import *
 
-from scorebee.timeline_window import TimelineWindow
-from scorebee.status_window import StatusWindow
-from scorebee.info_window import InfoWindow
+from scorebee.timeline import TimelineWindow
+from scorebee.status import StatusWindow
+from scorebee.info import InfoWindow
 from scorebee.data import Document, Track, Event
 
 

@@ -39,6 +39,8 @@ def make_property(name, conformer=str, force_get=True, force_set=True):
 class MPlayerDied(ValueError):
     pass
 
+class MPlayerComFailure(ValueError):
+    pass
 
 class MPlayer(object):
     
@@ -58,6 +60,7 @@ class MPlayer(object):
         
         self._fps = None
         self._speed = Fraction(1, 1)
+        self._length = None
         
         while self.length is None:
             self.clear_read_buffer()
@@ -116,7 +119,12 @@ class MPlayer(object):
     @property
     def fps(self):
         if self._fps is None:
-            self._fps = self.__fps
+            for i in xrange(10):
+                self._fps = self._raw_fps
+                if self._fps is not None:
+                    break
+            else:
+                raise MPlayerComFailure('while getting fps')
         return self._fps
     
     @property
@@ -138,12 +146,18 @@ class MPlayer(object):
     @speed.setter
     def speed(self, value):
         self._speed = Fraction(value)
-        self.__speed = float(value)
+        self._raw_speed = float(value)
     
-    __speed = make_property('speed', float)
+    @property
+    def length(self):
+        while self._length is None:
+            self._length = self._raw_length
+        return self._length
     
-    __fps = make_property('fps', float)
+    _raw_speed  = make_property('speed', float)
+    _raw_fps    = make_property('fps', float)
+    _raw_length = make_property('length', float)
+    
     time = make_property('time_pos', float, force_set=False)
     percent = make_property('percent_pos', float)
-    length = make_property('length', float)
     

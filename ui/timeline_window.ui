@@ -68,6 +68,19 @@
        <property name="styleSheet">
         <string notr="true"/>
        </property>
+       <widget class="Line" name="line">
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>130</y>
+          <width>118</width>
+          <height>3</height>
+         </rect>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -77,7 +90,7 @@
        <number>0</number>
       </property>
       <item>
-       <spacer name="horizontalSpacer_2">
+       <spacer name="scrollbar_spacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>

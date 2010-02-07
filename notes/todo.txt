@@ -69,5 +69,5 @@ Required
 Would be nice
 =============
 
-- Status window button icons update with the state they are in.
-
+- MPlayer property getting more robust with more error checking. .get_fps(...)
+	has explicit timeout, and throws and exception if it doesnt work.
