@@ -161,11 +161,11 @@ class App(object):
         self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
         # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
         self.doc.append(Track('A behaviour', 'q', [
-            (10, 15), (50, 65)
+            Event(10, 15), Event(50, 65), Event(500, 600)
         ]))
         self.doc.append(Track('Nothin here', 'w', []))
         self.doc.append(Track('Better one', 'e', [
-            (25, 26), (70, 71)
+            Event(25, 26), Event(70, 71), Event(700, 701)
         ]))
         self.timeline.doc_changed()
         

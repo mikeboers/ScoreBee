@@ -12,19 +12,10 @@ Required
 ========
 
 
-- mplayer controller class.
-	A wrapper around subprocess. Uses the slave interface. Time how long the
-	general interaction takes.
-	
-	- disable all of the mplayer inputs as possible.
-	- .play()
-	- .pause()
-	- .is_playing / .is_paused
-	- .speed get/set
-	- .frame get/set
-	- .time  get/set
-	
-	Those last three can be make with a property constructor.
+- controller
+	- timer should be based off os observed speed not requested speed
+	- single step button
+	- any way to emulate single step backwards?
 
 - Status window.
 	Current time in frames or a float, basic playing controls. Indicator of
@@ -34,6 +25,11 @@ Required
 	mplayer time.
 	
 	Red light if I know that the timer is out of sync.
+	
+	Typing numbers should set the current time.
+		you keep typing which adds digits to the input buffer, interpreting it
+		as the current time mode, and setting it when you are done
+		
 
 - Info window.
 	Has a number of sections that (would be nice) are collapsable. Just key
@@ -65,6 +61,9 @@ Required
 	- Would be nice if you could drag how big the stuff on the left is
 	- Would be nice if I idn't have to write raw button code fot the lock/invisible.
 	- MAYBE have the lock/invisible in a menu instead of a button.
+	- selectable tracks with commands in  a menu for locking and hiding them, etc
+	- zoom commands on cmd-+ and cmd--
+	- UNDO/REDO!
 
 
 Would be nice

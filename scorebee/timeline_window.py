@@ -1,4 +1,6 @@
 
+import time
+
 from .qt import *
 from .ui.timeline_window import Ui_timeline_window
 
@@ -44,7 +46,7 @@ class TimelineWindow(QtGui.QMainWindow):
         if not self.app.doc:
             return
         
-        # Resize myself. This need not be done here.
+        start_time = time.time()
         
         width, height = self.size()
         track_width = width - HEADER_WIDTH
@@ -56,13 +58,13 @@ class TimelineWindow(QtGui.QMainWindow):
             # The header line.
             p.drawLine(HEADER_WIDTH, 0, HEADER_WIDTH, height)
             
-            fps = self.mp.fps
+            fps = int(self.mp.fps)
             frame = int(self.app.time * fps)
             frame_scroll_offset = self.ui.scrollbar.value()
             
             # The play head.
             head_pos = HEADER_WIDTH + frame - frame_scroll_offset
-            if frame > frame_scroll_offset: # It is visible 
+            if frame + 1 > frame_scroll_offset: # It is visible 
                 p.setPen(QColor(128, 0, 0, 200))
                 p.setBrush(QColor(128, 0, 0, 100))
                 p.drawPolygon(
@@ -100,8 +102,27 @@ class TimelineWindow(QtGui.QMainWindow):
                 # The name and key
                 p.setPen(QColor(0))
                 p.drawText(10, y_offset + TRACK_HEIGHT - 6, "%s (%s)" % (track.name, track.key))
+                
+                # The data
+                for event in track:
+                    if event.end < frame_scroll_offset:
+                        continue
+                    if event.start > width + frame_scroll_offset:
+                        break
+                    p.drawLine(
+                        HEADER_WIDTH + event.start - frame_scroll_offset,
+                        y_offset + TRACK_HEIGHT/2,
+                        HEADER_WIDTH + event.end - frame_scroll_offset,
+                        y_offset + TRACK_HEIGHT/2
+                    )
+                    p.drawEllipse(QPoint(
+                            HEADER_WIDTH + event.start - frame_scroll_offset,
+                            y_offset + TRACK_HEIGHT/2),
+                        6, 6
+                    )
             
         finally:
             p.end()
         
+        print 'painted in %.3fms' % (1000 * (time.time() - start_time))
         
