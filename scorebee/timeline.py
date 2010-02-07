@@ -238,6 +238,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
         
         if self.clicked_in_ruler:
+            self.was_playing = not self.app.doc.mp.is_paused
+            if self.was_playing:
+                self.app.doc.mp.pause()
             self.ruler_mouseMoveEvent(event)
     
     def mouseMoveEvent(self, event):
@@ -245,8 +248,9 @@ class TimelineWindow(QtGui.QMainWindow):
         if x > self.header_width:
             self.ruler_mouseMoveEvent(event)
     
-    def mouseReleaseEvent(self, event):
-        pass
+    def mouseReleaseEvent(self, event):        
+        if self.clicked_in_ruler and self.was_playing:
+            self.app.doc.mp.play()
     
     def ruler_mouseMoveEvent(self, event):
         # We only need to suptrack the header width cause this is not directly
