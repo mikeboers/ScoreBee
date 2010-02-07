@@ -155,8 +155,6 @@ class Application(QObject):
         self.app.exec_()
         
         # HACK: Kill the MPlayer
-        if self.doc._mp:
-            self.doc._mp.proc.kill()
         self.doc._mp = None
         
         # Save window sizes and locations for the next startup.

@@ -17,19 +17,69 @@ SCROLLBAR_WIDTH = 15
 RULER_HEIGHT = 25
 TRACK_HEIGHT = 32
 
+
+class EventUI(QWidget):
+    
+    def __init__(self, timeline, event, parent):
+        QWidget.__init__(self, parent)
+        self.timeline = timeline
+        self.event = event
+        
+        self.pen_color = QColor(*tuple(random.randrange(128) for x in range(3)))
+        # self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(128) for x in range(3)))
+    
+    def layout(self):
+        
+        x = self.timeline.frame_to_x(self.event.start)
+        width = self.timeline.apply_zoom(self.event.length)
+        
+        self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
+    
+    
+    def paintEvent(self, event):
+        
+        x = self.timeline.frame_to_x(self.event.start)
+        width = self.timeline.apply_zoom(self.event.length)
+        
+        p = QtGui.QPainter(self)
+        try:
+            p.setRenderHint(QtGui.QPainter.Antialiasing)
+        
+            pen = QPen()
+            pen.setColor(self.pen_color)
+            pen.setWidth(3)
+            p.setPen(pen)
+        
+            p.setBrush(self.pen_color.lighter(125))
+            
+            p.drawLine(8, TRACK_HEIGHT/2, 8 + width, TRACK_HEIGHT/2)
+            p.drawLine(8 + width + 1, 10, 8 + width + 1, TRACK_HEIGHT - 10)
+            
+            pen.setWidth(2)
+            p.setPen(pen)
+            p.drawEllipse(QPoint(8, TRACK_HEIGHT/2), 7, 7)
+        
+        finally:
+            p.end()
+        
+
+
 class TimelineWindow(QtGui.QMainWindow):
 
     def __init__(self, app):
-        
-    
         QtGui.QMainWindow.__init__(self)
         self.app = app
         
         self.tracks = []
         
+        # At zoom level 0, 1 frame will take up 1 pixel.
         self.zoom_level = 0
+        
         self.build_base_gui()
         
+        # Need to track if a click was registered in the ruler or not, cause
+        # I was not able to get the mouse events working on the ruler itslef.
+        # Ie. I hacked it together.
         self.clicked_in_ruler = False
         
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
@@ -37,11 +87,26 @@ class TimelineWindow(QtGui.QMainWindow):
         connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_event)
         
     
-    def zoom(self, v):
-        return int(v * Fraction(2, 1) ** self.zoom_level)
+    def apply_zoom(self, value):
+        """Apply the current zoom level to some data."""
+        return float(value * Fraction(2, 1) ** self.zoom_level)
     
-    def unzoom(self, v):
-        return float(float(v) / Fraction(2, 1) ** self.zoom_level)
+    def unapply_zoom(self, value):
+        return float(value / Fraction(2, 1) ** self.zoom_level)
+        
+    def frame_to_x(self, frame):
+        """Get the x-coord for a given frame."""
+        return int(self.apply_zoom(float(frame)) - self.h_scrollbar.value())
+    
+    def x_to_frame(self, x):
+        """Get the frame number of a n x-coord"""
+        return int(self.unapply_zoom(float(x) + self.h_scrollbar.value()))
+    
+    def time_to_x(self, time):
+        return self.frame_to_x(time * self.app.mp.fps)
+    
+    def x_to_time(self, x):
+        return self.x_to_frame(x) / self.app.mp.fps
     
     def build_base_gui(self):
           
@@ -147,7 +212,7 @@ class TimelineWindow(QtGui.QMainWindow):
         # Data height/width.
         if self.app.doc:
             dh = TRACK_HEIGHT * len(self.app.doc.tracks)
-            dw = self.zoom(self.app.mp.frame_count)
+            dw = self.apply_zoom(self.app.mp.frame_count)
         else:
             dh = dw = 0
     
@@ -174,11 +239,17 @@ class TimelineWindow(QtGui.QMainWindow):
         self.v_scrollbar.setMaximum(dh - th if dh > th else 0)
         self.v_scrollbar.setPageStep(th)
         
-        # Track headers
+        # Track headers and data
         for i, track in enumerate(self.tracks):
             track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
             track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
             track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
+            
+            for event in track.events:
+                if not hasattr(event, 'ui'):
+                    event.ui = EventUI(self, event, track.ui.data)
+                    event.ui.show()
+                event.ui.layout()
         
         self.playhead_layout()
     
@@ -255,19 +326,16 @@ class TimelineWindow(QtGui.QMainWindow):
     def ruler_mouseMoveEvent(self, event):
         # We only need to suptrack the header width cause this is not directly
         # recieving the mouse event.
-        f = event.pos().x() - self.header_width + self.h_scrollbar.value()
-        f = self.unzoom(f)
-        t = f / self.app.mp.fps
+        t = self.x_to_time(event.pos().x() - self.header_width)
         self.app.time = self.app.mp.time = t
-        self.app.idleEvent(None) # HUGE HACK!
+        self.app.sync() # HUGE HACK!
     
         
     def playhead_layout(self):
         if self.app.doc is not None:
-            # self.playhead.setStyleSheet('background-color:red')
             frame = int(self.app.time * self.app.mp.fps)
             
-            x = self.zoom(frame - self.h_scrollbar.value())
+            x = self.frame_to_x(frame)
             
             self.playhead_container.setGeometry(
                 self.header_width,

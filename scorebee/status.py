@@ -25,7 +25,7 @@ class StatusWindow(QtGui.QDialog):
         
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_signal)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_signal)
-        connect(self.app, SIGNAL('synced'), self.handle_sync_signal)
+        connect(self.app, SIGNAL('synced'), self.handle_synced_signal)
     
     @property
     def mp(self):
@@ -82,7 +82,7 @@ class StatusWindow(QtGui.QDialog):
         time = self.app.time
         self.ui.time.setText(self.app.format_time())
     
-    def handle_sync_signal(self, delta):
+    def handle_synced_signal(self, delta):
         self.ui.sync.setText('sync: %3dms' % abs(1000 * delta))
         
     def time_mousePress(self, event):

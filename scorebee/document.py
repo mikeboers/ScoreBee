@@ -8,6 +8,10 @@ class Event(QObject):
         self.start = start
         self.end = end
     
+    @property
+    def length(self):
+        return self.end - self.start if self.end is not None else None
+    
     def __repr__(self):
         return 'Event(%r, %r)' % (self.start, self.end)
 
