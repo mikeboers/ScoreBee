@@ -67,9 +67,6 @@ class TimelineWindow(QtGui.QMainWindow):
         self.time.setFont(font)
         
         self.ruler_container = QWidget(self)
-        # self.header_line.setFrameShape(QFrame.VLine)
-        # self.header_line.setFrameShadow(QFrame.Sunken)
-        self.ruler_container.setStyleSheet('background-color:rgb(255, 138, 0)')
         self.ruler = QWidget(self.ruler_container)
         self.ruler.paintEvent = self.ruler_paintEvent
     
@@ -138,6 +135,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.layout()
     
     def time_changed(self):
+        self.time.setText(self.app.format_time())
         self.playhead_layout()
     
     def layout(self, event=None):
@@ -215,18 +213,18 @@ class TimelineWindow(QtGui.QMainWindow):
             
             font = QFont()
             font.setFamily("Courier New")
-            font.setPointSize(12)
+            font.setPointSize(10)
             p.setFont(font)
             
             for i in xrange(steps):
                 x = min_x + STEP * i
                 if i % 2:
-                    p.drawLine(x, RULER_HEIGHT/2, x, RULER_HEIGHT)
+                    p.drawLine(x, RULER_HEIGHT - 6, x, RULER_HEIGHT)
                 else:    
                     p.drawLine(x, 4, x, RULER_HEIGHT)
                     p.setPen(QColor(0))
-                    txt = str(min_t + i)
-                    p.drawText(QPoint(x + 2, 12), txt)
+                    txt = self.app.format_time(min_t + i)
+                    p.drawText(QPoint(x + 2, 10), txt)
         finally:
             p.end
     

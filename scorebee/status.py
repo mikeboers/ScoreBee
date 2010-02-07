@@ -4,16 +4,10 @@ import logging
 from .qt import *
 from .ui.status_window import Ui_status_window
 
-
 log = logging.getLogger(__name__)
 
 
-TIME_MODE_SECONDS = 'seconds'
-TIME_MODE_FRAMES = 'frames'
-time_mode_next = {
-    TIME_MODE_SECONDS: TIME_MODE_FRAMES,
-    TIME_MODE_FRAMES: TIME_MODE_SECONDS
-}
+
 
 
 class StatusWindow(QtGui.QDialog):
@@ -25,7 +19,6 @@ class StatusWindow(QtGui.QDialog):
         self.ui = Ui_status_window()
         self.ui.setupUi(self)
         
-        self.time_mode = TIME_MODE_FRAMES
         self.ui.time.mousePressEvent = self.time_mousePress
         
         # Connect all the buttons.
@@ -78,17 +71,11 @@ class StatusWindow(QtGui.QDialog):
         self.mp.speed = value
         self.ui.speed.setText('speed: %sx' % self.speed)
     
-    def set_time(self, time):
-        if self.time_mode == TIME_MODE_FRAMES:
-            frames = int(time * self.mp.fps)
-            seconds, frames = divmod(frames, self.mp.fps)
-            minutes, seconds = divmod(seconds, 60)
-            self.ui.time.setText('%02d:%02d:%02d' % (minutes, seconds, frames))
-        else:
-            self.ui.time.setText('%.2f' % time)
-    
-    
+    def time_changed(self):
+        time = self.app.time
+        self.ui.time.setText(self.app.format_time())
+        
     def time_mousePress(self, event):
         log.debug('time clicked')
-        self.time_mode = time_mode_next[self.time_mode]
+        self.app.next_time_mode()
 

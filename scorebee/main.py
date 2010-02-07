@@ -7,11 +7,11 @@ import time
 
 from scorebee.qt import *
 
-from scorebee.timeline import TimelineWindow
-from scorebee.status import StatusWindow
-from scorebee.info import InfoWindow
-from scorebee.data import Document, Track, Event
-
+from .timeline import TimelineWindow
+from .status import StatusWindow
+from .info import InfoWindow
+from .data import Document, Track, Event
+from .util import next_time_mode, format_time
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +63,13 @@ class App(object):
         
         # This will be updated by the status window.
         self.time = 0
+        self.time_mode = next_time_mode()
+    
+    def format_time(self, time=None):
+        return format_time(self.time if time is None else time, self.doc.mp.fps, self.time_mode)
+    
+    def next_time_mode(self):
+        self.time_mode = next_time_mode(self.time_mode)
     
     @property
     def doc(self):
@@ -104,7 +111,7 @@ class App(object):
         
         if time_changed:
             self.timeline.time_changed()
-            self.status.set_time(self.time)
+            self.status.time_changed()
     
     def setup_menu(self):
         
