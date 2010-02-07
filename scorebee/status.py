@@ -77,9 +77,11 @@ class StatusWindow(QtGui.QDialog):
         self.mp.speed = value
         self.ui.speed.setText('speed: %sx' % self.speed)
     
-    def handle_time_change_event(self):
+    def handle_time_change_event(self, delta=None):
         time = self.app.time
         self.ui.time.setText(self.app.format_time())
+        if delta is not None:
+            self.ui.sync.setText('sync: %3dms' % abs(1000 * delta))
         
     def time_mousePress(self, event):
         log.debug('time clicked')

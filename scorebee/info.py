@@ -13,6 +13,24 @@ class InfoWindow(QtGui.QDialog):
         self.app = app
         self.ui = Ui_info_window()
         self.ui.setupUi(self)
+        
+        # DEV: This is only for development.
+        data = [
+            ('General Info', [
+                ('fruit', 'apple'),
+                ('key', 'a long value; ' * 5),
+                ('sync', '<span style="color:red">RESYNCING...</span>'),
+                ('sync', '<span style="color:orange">TESTING...</span>'),
+                ('sync', '<span style="color:green">OK</span>'),
+            ]),
+            ('General Info', [
+                ('fruit', 'apple'),
+                ('key', 'a long value; ' * 5),
+                ('red', '<span style="color:red">ARRGHHH</span>'),
+            ])
+        ]
+        
+        self.update(data)
     
     def update(self, sets):
         text = []

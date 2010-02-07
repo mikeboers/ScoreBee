@@ -30,124 +30,102 @@ class Application(QObject):
         
         self.app = QtGui.QApplication(argv)
         
-        # Build up the three windows.
-        self.timeline = TimelineWindow(self)
-        self.status   = StatusWindow(self, self.timeline)
-        self.info     = InfoWindow(self, self.timeline)
-
         # The document is accessed through a property because we need to
         # signal rebuilding the api whenever it is changed.
         self._doc = None
         self._mp = None
         
+        # Build up the three windows.
+        self.timeline = TimelineWindow(self)
+        self.status   = StatusWindow(self, self.timeline)
+        self.info     = InfoWindow(self, self.timeline)
+        
         self.setup_menu()
         
-        
-        
-        data = [
-            ('General Info', [
-                ('fruit', 'apple'),
-                ('key', 'a long value; ' * 5),
-                ('sync', '<span style="color:red">RESYNCING...</span>'),
-                ('sync', '<span style="color:orange">TESTING...</span>'),
-                ('sync', '<span style="color:green">OK</span>'),
-            ]),
-            ('General Info', [
-                ('fruit', 'apple'),
-                ('key', 'a long value; ' * 5),
-                ('red', '<span style="color:red">ARRGHHH</span>'),
-            ])
-        ]
-        self.info.update(data)
-        
-        
-        
+        # Setup our main loop timer.
         self.idle_timer = QTimer()
-        self.idle_timer.setInterval(10)
-        self.idle_timer.timerEvent = self.idleEvent
-        self.last_idle = 0
-        self.last_sync = 0
-        self.sync_offset = 0
-        self.sync_time = 0
-        self.needs_sync = True
+        self.idle_timer.setInterval(10) # milliseconds
+        self.idle_timer.timerEvent = self.main_loop
         
-        # This will be updated by the status window.
-        self.time = 0
+        self.last_loop_time = 0
+        
+        self.time = 0 # Our guess for the current time.
+        self.mp_sync_time = 0 # Last time we synced to mplayer's time.
+        self.mp_time_at_sync = 0 # What the time was when we synced.
+        
+        # The global time representation mode. Rotate this by calling
+        # self.next_time_mode()
         self.time_mode = next_time_mode()
         
+        # Some state to keep track of which keys are pressed.
         self.pressed_keys = set()
         self.track_keys = set()
     
     @property
     def mp(self):
+        """Always a good (ie. running) mplayer."""
         if self._mp is None or not self._mp.is_running:
             self._mp = MPlayer(self.doc.src)
         return self._mp
     
     def format_time(self, time=None):
+        """Format a time with the current time format mode."""
         return format_time(self.time if time is None else time, self.mp.fps, self.time_mode)
     
     def next_time_mode(self):
+        """Rotate the time format mode."""
         self.time_mode = next_time_mode(self.time_mode)
-        self.emit(SIGNAL('time_mode_changed'), ())
+        self.emit(SIGNAL('time_mode_changed'))
     
     @property
     def doc(self):
+        """The open document.
+        
+        Setting this has major side effects."""
         return self._doc
     
     @doc.setter
     def doc(self, doc):
+        
         self._doc = doc
-        self.status.repaint()
-        self.timeline.doc_changed()
+        self._mp = None # Forces a new mplayer with the new video.
+        self.mp.time = 0
+        
         self.track_keys = set(ord(track.key.upper()) for track in doc.tracks)
-    
-    
-    
-    
-    
-    def idleEvent(self, event):
-        this_time = time.time()
-        time_delta = this_time - self.last_sync
+        self.emit(SIGNAL('doc_changed'))
         
-        if this_time - self.last_sync > cfg.SYNC_INTERVAL:
-            self.needs_sync = True
+        # We need the interface to be updated. This is the likely the best way
+        # That I know.
+        self.main_loop(force_sync=True)    
+    
+    def main_loop(self, event=None, force_sync=False):
+        """Event that is triggered every couple milliseconds.
         
-        time_changed = False
+        Treat this as our main loop.
         
-        if self.needs_sync:
+        """
+        now = time.time()
+        time_delta = now - self.mp_sync_time
+        
+        if force_sync or now - self.mp_sync_time > cfg.SYNC_INTERVAL:
             self.sync()
         
         elif not self.mp.is_paused:
-            # speed_offset = 1 + self.sync_offset / (self.mp.speed * cfg.SYNC_INTERVAL)
-            self.time = self.sync_time + self.mp.speed * time_delta
-            self.emit(SIGNAL('time_changed'), ())
+            self.time = self.mp_time_at_sync + self.mp.speed * time_delta
+            self.emit(SIGNAL('time_changed'))
             
     
     def sync(self):
         new_time = self.mp.time
-        self.sync_offset = new_time - self.time
-        self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
-        self.sync_time = self.time = new_time
-        self.needs_sync = False
-        self.last_sync = time.time()
-        self.emit(SIGNAL('time_changed'), ())
+        delta = new_time - self.time
+                
+        self.mp_time_at_sync = self.time = new_time
+        self.mp_sync_time    = time.time()
+        
+        self.emit(SIGNAL('time_changed'), delta)
     
     def setup_menu(self):
-        
-        video = QtGui.QAction(QtGui.QIcon('ui/silk/accept.png'), 'Open Video', self.timeline)
-        data = QtGui.QAction(QtGui.QIcon('icons/data.png'), 'Choose Datafile', self.timeline)
-        # exit = QtGui.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self.timeline)
-        #self.connect(exit, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
-        #self.connect(video, QtCore.SIGNAL('triggered()'), self.videodialog)
-        #self.connect(data, QtCore.SIGNAL('triggered()'), self.datadialog)
         menubar = self.timeline.menuBar()
-        file = menubar.addMenu("&File")
-        help = menubar.addMenu("Help")
-        file.addAction(video)
-        file.addAction(data)
-        # file.addAction(exit)
-        
         window_menu = menubar.addMenu("Window")
         def make_handler(name):
             def handler():
@@ -160,14 +138,6 @@ class Application(QObject):
             action = QtGui.QAction(name.capitalize(), self.timeline)
             connect(action, SIGNAL('triggered()'), make_handler(name))
             window_menu.addAction(action)
-                
-        #Help menu
-        # about = QtGui.QAction(QtGui.QIcon('icons/about.png'), 'About CowLog', self.timeline)
-        #self.connect(about, QtCore.SIGNAL('triggered()'), self.aboutAction)
-        # manual = QtGui.QAction(QtGui.QIcon('icons/help.png'), 'CowLog Help', self.timeline)
-        #self.connect(manual, QtCore.SIGNAL('triggered()'), self.helpAction)
-        # help.addAction(manual)
-        # help.addAction(about)
     
     
     def keyPressEvent(self, event):

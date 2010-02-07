@@ -34,6 +34,8 @@ class TimelineWindow(QtGui.QMainWindow):
         
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_mode_change_event)
+        connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_event)
+        
     
     def zoom(self, v):
         return int(v * Fraction(2, 1) ** self.zoom_level)
@@ -43,6 +45,7 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def build_base_gui(self):
           
+        self.resize(600, 300)
         
         # Remove the stupid status bar. This may need to go back for other
         # platforms.
@@ -96,18 +99,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_line.mousePressEvent = lambda e: None # Trick it into giving us the drag.
         self.header_line.mouseMoveEvent = self.header_line_mouseMoveEvent
         
-        
-        self.resize(600, 300)
-        
-    @property
-    def doc(self):
-        return self.app.doc
+        self.layout()
     
-    @property
-    def mp(self):
-        return self.app.mp
-    
-    def doc_changed(self):
+    def handle_doc_changed_event(self):
         # TODO: detroy the old tracks
         self.tracks = list(self.app.doc.tracks)
         for i, track in enumerate(self.tracks):
