@@ -90,6 +90,8 @@ class TimelineWindow(QtGui.QMainWindow):
         self.playhead_container = QWidget(self)
         self.playhead = QWidget(self.playhead_container)
         self.playhead.paintEvent = self.playhead_paintEvent
+        # Force it off the screen until it is layed out.
+        self.playhead_container.move(-100, 0)
         
         self.header_line = QtGui.QFrame(self)
         self.header_line.setFrameShape(QFrame.VLine)

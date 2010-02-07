@@ -61,6 +61,21 @@ class Application(QObject):
         self.pressed_keys = set()
         self.track_keys = set()
     
+    def setup_menu(self):
+        menubar = self.timeline.menuBar()
+        window_menu = menubar.addMenu("Window")
+        def make_handler(name):
+            def handler():
+                window = getattr(self, name)
+                window.show()
+                window.repaint()
+                window.raise_()
+            return handler
+        for name in WINDOW_NAMES:
+            action = QtGui.QAction(name.capitalize(), self.timeline)
+            connect(action, SIGNAL('triggered()'), make_handler(name))
+            window_menu.addAction(action)
+            
     @property
     def mp(self):
         """Always a good (ie. running) mplayer."""
@@ -96,55 +111,12 @@ class Application(QObject):
         
         # We need the interface to be updated. This is the likely the best way
         # That I know.
-        self.main_loop(force_sync=True)    
-    
-    def main_loop(self, event=None, force_sync=False):
-        """Event that is triggered every couple milliseconds.
-        
-        Treat this as our main loop.
-        
-        """
-        now = time.time()
-        time_delta = now - self.mp_sync_time
-        
-        if force_sync or now - self.mp_sync_time > cfg.SYNC_INTERVAL:
-            self.sync()
-        
-        elif not self.mp.is_paused:
-            self.time = self.mp_time_at_sync + self.mp.speed * time_delta
-            self.emit(SIGNAL('time_changed'))
-            
-    
-    def sync(self):
-        new_time = self.mp.time
-        delta = new_time - self.time
-                
-        self.mp_time_at_sync = self.time = new_time
-        self.mp_sync_time    = time.time()
-        
-        self.emit(SIGNAL('time_changed'), delta)
-    
-    def setup_menu(self):
-        menubar = self.timeline.menuBar()
-        window_menu = menubar.addMenu("Window")
-        def make_handler(name):
-            def handler():
-                window = getattr(self, name)
-                window.show()
-                window.repaint()
-                window.raise_()
-            return handler
-        for name in WINDOW_NAMES:
-            action = QtGui.QAction(name.capitalize(), self.timeline)
-            connect(action, SIGNAL('triggered()'), make_handler(name))
-            window_menu.addAction(action)
-    
-    
-    def keyPressEvent(self, event):
-        print event.key()
+        self.sync()
     
     def run(self):
         
+        # Load and apply all of the window settings.
+        # TODO: move this onto the window class itself.
         if os.path.exists('settings/windows.json'):
             window_prefs = json.load(open('settings/windows.json'))
             for name, data in window_prefs.iteritems():
@@ -153,16 +125,19 @@ class Application(QObject):
                 window.resize(*data['size'])
             
         self.status.show()
-        self.info.show()     
-        self.timeline.layout() 
+        self.info.show()
         self.timeline.show()
         
+        # Collect all of the key press events here.
         for name in WINDOW_NAMES:
             window = getattr(self, name)
             window.keyPressEvent = self.keyPressEvent
             window.keyReleaseEvent = self.keyReleaseEvent
         
-        # This is just a hack for now.
+        # Load a document.
+        # We absolutely MUST have the document constructed fully BEFORE
+        # setting it here. There are side effects to setting it.
+        # HACK: This is just a hack for now.
         doc = Document('/Users/mikeboers/Desktop/example.MOV')
         # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
         doc.tracks.append(Track('A behaviour', 'q', [
@@ -175,12 +150,16 @@ class Application(QObject):
         
         self.doc = doc
         
+        # Run the main loops.
         self.idle_timer.start()
         self.app.exec_()
         
         # HACK: Kill the MPlayer
+        if self.doc._mp:
+            self.doc._mp.proc.kill()
         self.doc._mp = None
         
+        # Save window sizes and locations for the next startup.
         window_prefs = {}
         for name in WINDOW_NAMES:
             window_prefs[name] = dict(
@@ -189,11 +168,44 @@ class Application(QObject):
             )
         json.dump(window_prefs, open('settings/windows.json', 'w'), indent=4)
     
+    def main_loop(self, event=None, force_sync=False):
+        """Event that is triggered every couple milliseconds.
+
+        Treat this as our main loop.
+
+        """
+        now = time.time()
+        time_delta = now - self.mp_sync_time
+
+        if force_sync or now - self.mp_sync_time > cfg.SYNC_INTERVAL:
+            self.sync()
+
+        elif not self.mp.is_paused:
+            self.time = self.mp_time_at_sync + self.mp.speed * time_delta
+            self.emit(SIGNAL('time_changed'))
+
+
+    def sync(self):
+        """Sync up our time keeping with the actual time in the media player.
+
+        We also use this to measure what the real speed is.
+
+        """
+        new_time = self.mp.time
+        delta = new_time - self.time
+
+        self.mp_time_at_sync = self.time = new_time
+        self.mp_sync_time    = time.time()
+
+        if delta:
+            self.emit(SIGNAL('time_changed'), delta)
+        self.emit(SIGNAL('synced'), delta)
+        
     def keyPressEvent(self, event):
         key = event.key()
         self.pressed_keys.add(key)
         print 'pressed:', self.pressed_keys
-        
+
     def keyReleaseEvent(self, event):
         key = event.key()
         if not (key in self.track_keys and Qt.Key_Shift in self.pressed_keys):

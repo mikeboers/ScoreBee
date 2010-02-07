@@ -23,8 +23,9 @@ class StatusWindow(QtGui.QDialog):
         for name in 'pause play step fast_forward rewind go_to_start'.split():
             connect(getattr(self.ui, name), SIGNAL('clicked()'), getattr(self, '%s_button' % name))
         
-        connect(self.app, SIGNAL('time_changed'),      self.handle_time_change_event)
-        connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_event)
+        connect(self.app, SIGNAL('time_changed'), self.handle_time_change_signal)
+        connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_signal)
+        connect(self.app, SIGNAL('synced'), self.handle_sync_signal)
     
     @property
     def mp(self):
@@ -77,11 +78,12 @@ class StatusWindow(QtGui.QDialog):
         self.mp.speed = value
         self.ui.speed.setText('speed: %sx' % self.speed)
     
-    def handle_time_change_event(self, delta=None):
+    def handle_time_change_signal(self):
         time = self.app.time
         self.ui.time.setText(self.app.format_time())
-        if delta is not None:
-            self.ui.sync.setText('sync: %3dms' % abs(1000 * delta))
+    
+    def handle_sync_signal(self, delta):
+        self.ui.sync.setText('sync: %3dms' % abs(1000 * delta))
         
     def time_mousePress(self, event):
         log.debug('time clicked')
