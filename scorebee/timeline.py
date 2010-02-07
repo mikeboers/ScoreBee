@@ -1,11 +1,14 @@
 
 import time
 from fractions import Fraction
+import random
 
 from .qt import *
 from .ui.timeline_window import Ui_timeline_window
 
 
+class UIData(object):
+    pass
 
 
 # TODO: calculate this for more platforms. can be done with:
@@ -23,7 +26,13 @@ class TimelineWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.app = app
         
+        self.tracks = []
+        
+        self.zoom_level = 0
         self.build_base_gui()
+    
+    def zoom(self, v):
+        return int(v * Fraction(2, 1) ** self.zoom_level)
     
     def build_base_gui(self):
           
@@ -34,28 +43,25 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Initial constants for the header. These should be updated depending
         # on the data that gets preresented (ie. the width of the text).
-        self.header_width = 100
+        self.header_width = 200
         self.header_min_width = 100
-        self.header_max_width = 200
+        self.header_max_width = 300
     
-        self.canvas = QWidget(self)
-        self.canvas.setStyleSheet('background-color:rgb(255, 255, 200)')
+        self.track_container = QWidget(self)
+        self.track_container.setStyleSheet('background-color:rgb(255, 255, 200)')
         
-        self.time = QLineEdit(self.canvas)
+        self.time = QLineEdit(self)
         self.time.setText('31:41:59')
         self.time.setAlignment(Qt.AlignRight)
         self.time.setReadOnly(True)
         self.time.setFrame(False)
-        self.time.setStyleSheet('background-color:rgb(200, 200, 200)')
         font = QFont()
         font.setFamily("Courier New")
         font.setPointSize(12)
-        font.setWeight(75)
         font.setBold(True)
         self.time.setFont(font)
         
-        
-        self.ruler_container = QWidget(self.canvas)
+        self.ruler_container = QWidget(self)
         self.ruler_container.setStyleSheet('background-color:rgb(255, 138, 0)')
         self.ruler = QWidget(self.ruler_container)
     
@@ -83,31 +89,80 @@ class TimelineWindow(QtGui.QMainWindow):
         return self.app.doc.mp
     
     def doc_changed(self):
-        print 'doc changed'
+        # TODO: detroy the old tracks
+        self.tracks = list(self.app.doc)
+        for i, track in enumerate(self.tracks):
+            
+            track.ui = ui = UIData() # This is just a generic object.
+            ui.container = QWidget(self.track_container)
+            ui.container.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
+            ui.header = QLineEdit(ui.container)
+            ui.data = QWidget(ui.container)
+            
+            ui.header.setText('%s (%s)' % (track.name, track.key.upper()))
+            ui.header.setAlignment(Qt.AlignRight)
+            ui.header.setReadOnly(True)
+            ui.header.setFrame(False)
+            font = QFont()
+            font.setFamily("Courier New")
+            font.setPointSize(12)
+            font.setBold(True)
+            ui.header.setFont(font)
+        
+        self.layout()
+        
+        for track in self.tracks:
+            track.ui.container.show()
     
     def resizeEvent(self, event):
         self.layout()
-
+    
+    
     def layout(self):
+        
+        # Some convenient sizes.
         w = self.size().width()
         h = self.size().height()
+        hw = self.header_width # Header width
+        tw = w - hw - SCROLLBAR_WIDTH # Track width
+        th = h - RULER_HEIGHT - SCROLLBAR_WIDTH
         
-        # Track width.
-        hw = self.header_width
-        tw = w - hw
+        # Data height/width.
+        if self.app.doc:
+            dh = TRACK_HEIGHT * len(self.app.doc)
+            dw = self.zoom(self.app.doc.mp.frame_count)
+        else:
+            dh = dw = 0
     
         self.setMinimumSize(self.header_width + 200, 100)
     
         
-        self.canvas.         setGeometry(0, 0, w, h)
+        self.track_container.setGeometry(0, RULER_HEIGHT, w, dh)
         
+        # Adjust the time display and the ruler container width.
         self.time.setGeometry(0, 0, hw, RULER_HEIGHT)
-        self.ruler_container.setGeometry(hw, 0, tw - SCROLLBAR_WIDTH, RULER_HEIGHT)
-        self.ruler.          setGeometry(0, 0, 1000, RULER_HEIGHT)
+        self.ruler_container.setGeometry(hw, 0, tw, RULER_HEIGHT)
+        self.ruler.setGeometry(0, 0, dw, RULER_HEIGHT) # This only need happen once.
         
-        self.header_line.       setGeometry(self.header_width - 2, -2, 4, h + 4)
+        self.header_line.setGeometry(self.header_width - 2, -2, 4, h + 4)
+        
+        # Scroll bars should be along the bottom and the right side.
         self.h_scrollbar.setGeometry(self.header_width, h-SCROLLBAR_WIDTH, w - self.header_width - SCROLLBAR_WIDTH, SCROLLBAR_WIDTH)
         self.v_scrollbar.setGeometry(w-SCROLLBAR_WIDTH, RULER_HEIGHT, SCROLLBAR_WIDTH, h - SCROLLBAR_WIDTH - RULER_HEIGHT)
+        
+        # Update the scrollbar maximums and step sizes to go along with the
+        # new size and data that we have.
+        self.h_scrollbar.setMaximum(dw if dw > tw else 0)
+        self.h_scrollbar.setPageStep(tw)
+        self.v_scrollbar.setMaximum(dh if dh > th else 0)
+        self.v_scrollbar.setPageStep(th)
+        
+        # Track headers
+        for i, track in enumerate(self.tracks):
+            track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
+            print track.ui.container.pos()
+            track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
+            track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
 
     def header_line_mouseMoveEvent(self, event):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
