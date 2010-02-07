@@ -7,13 +7,29 @@ General
 
 
 
+time_to_frame should be used everywhere.
+	return int(0.5 + time * fps)
+
+document the code for adding new events
+write out standards for how overriding events work in various circumstances
+record the creation_date of events
+	a list of time/note pairs
+		<time>: created
+		<time>: extended
+
+spacebar should play/pause
+status play/pause should be same button
+file saving/loading
+	cleanup all the tracks and event widgets
+
+get it into py2app with an icon in the dock
+
 
 Required
 ========
 
 - controller
 	- timer should be based off os observed speed not requested speed
-	- should have the mp, NOT the document.
 
 - Status window.
 	Current time in frames or a float, basic playing controls. Indicator of
@@ -32,15 +48,6 @@ Required
 - Info window.
 	Has a number of sections that (would be nice) are collapsable. Just key
 	value pairs under that.
-	
-	Only needs one method to update it. Pass it a list like so:
-	[
-	'Header 1', [
-		['key1', 'value1'],
-		['key2', 'value2']],
-	'Header 2', [
-		...
-	]]
 
 - Data structure:
 	- A document object has a filename
@@ -55,8 +62,6 @@ Required
 	- merge two when they collide
 
 - Timeline
-	- Horizontal scroll bar only affects the right part.
-	- Would be nice if you could drag how big the stuff on the left is
 	- Would be nice if I idn't have to write raw button code fot the lock/invisible.
 	- MAYBE have the lock/invisible in a menu instead of a button.
 	- selectable tracks with commands in  a menu for locking and hiding them, etc

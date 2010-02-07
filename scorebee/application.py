@@ -192,29 +192,48 @@ class Application(QObject):
             self.emit(SIGNAL('updated_event'), event)
 
 
-    def sync(self):
+    def sync(self, verbose=False):
         """Sync up our time keeping with the actual time in the media player.
 
         We also use this to measure what the real speed is.
 
         """
+        
+        start_time = time.time()
         new_time = self.mp.time
         delta = new_time - self.time
 
         self.mp_time_at_sync = self.time = new_time
-        self.mp_sync_time    = time.time()
+        self.mp_sync_time    = start_time
 
         if delta:
             self.emit(SIGNAL('time_changed'), delta)
         self.emit(SIGNAL('synced'), delta)
         
+        if verbose:
+            log.debug('synced in %.2fms' % (1000 * (time.time() - start_time)))
+        
     def keyPressEvent(self, event):
         key = event.key()
+        
+        # Track the key press.
         self.pressed_keys.add(key)
         
+        # If this key is a trigger for a track and there isn't already an
+        # open event (ie one in progress already), then make a new one.
         if key in self.key_to_track and key not in self.key_to_open_event:
             track = self.key_to_track[key]
-            self.sync()
+            
+            # Make sure we are getting an acurate time here. There may be
+            # issues if the sync itself takes some time to complete.
+            #
+            # We could time how long this takes to complete and then subtract
+            # that from the time value we get, but we don't know if the delay
+            # is on the front or the back. I'm not going to bother for now.
+            self.sync(verbose=True)
+            
+            # Create the new event, store it in all the right places, and
+            # signal to everyone else that it exists.
             frame = self.frame
             event = Event(frame, frame)
             track.add_event(event)
@@ -223,16 +242,23 @@ class Application(QObject):
             
 
     def keyReleaseEvent(self, event):
-        
         key = event.key()
+        
+        # Ignore the release event if it is a track trigger, and the shift
+        # button is held down. This effectively makes the keys sticky. One can
+        # cancel it by hitting it normally.
         if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):
             self.pressed_keys.remove(key)
-            event = self.key_to_open_event.pop(key, None)
-            if event is not None:
-                self.sync()
-                event.end = self.frame
-                self.emit(SIGNAL('updated_event'), event)
             
-        print 'still..:', self.pressed_keys
+            if key in self.key_to_open_event:
+                event = self.key_to_open_event.pop(key)
+                
+                # Make sure we are getting an accurate time. See my note in
+                # the keyPressEvent for why this can be wrong.
+                self.sync(verbose=True)
+                event.end = self.frame
+                
+                # Let everyone know...
+                self.emit(SIGNAL('updated_event'), event)
 
 
