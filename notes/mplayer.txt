@@ -2,3 +2,5 @@
 
 It takes about 25-33 ms to make a round trip to/from mplayer for a property
 request.
+
+Use loadfile to load a file. needs an absolute path
