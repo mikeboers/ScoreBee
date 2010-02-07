@@ -30,6 +30,8 @@ class TimelineWindow(QtGui.QMainWindow):
         
         self.zoom_level = 0
         self.build_base_gui()
+        
+        self.clicked_in_ruler = False
     
     def zoom(self, v):
         return int(v * Fraction(2, 1) ** self.zoom_level)
@@ -65,6 +67,8 @@ class TimelineWindow(QtGui.QMainWindow):
         self.time.setFont(font)
         
         self.ruler_container = QWidget(self)
+        # self.header_line.setFrameShape(QFrame.VLine)
+        # self.header_line.setFrameShadow(QFrame.Sunken)
         self.ruler_container.setStyleSheet('background-color:rgb(255, 138, 0)')
         self.ruler = QWidget(self.ruler_container)
         self.ruler.paintEvent = self.ruler_paintEvent
@@ -81,6 +85,10 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ruler_line.setFrameShadow(QFrame.Sunken)
         self.ruler_line.setLineWidth(2)
         
+        self.playhead_container = QWidget(self)
+        self.playhead = QWidget(self.playhead_container)
+        self.playhead.paintEvent = self.playhead_paintEvent
+        
         self.header_line = QtGui.QFrame(self)
         self.header_line.setFrameShape(QFrame.VLine)
         self.header_line.setFrameShadow(QFrame.Sunken)
@@ -89,9 +97,6 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_line.mousePressEvent = lambda e: None # Trick it into giving us the drag.
         self.header_line.mouseMoveEvent = self.header_line_mouseMoveEvent
         
-        self.playhead_container = QWidget(self)
-        self.playhead = QWidget(self.playhead_container)
-        self.playhead.paintEvent = self.playhead_paintEvent
         
         self.resize(600, 300)
         
@@ -224,6 +229,34 @@ class TimelineWindow(QtGui.QMainWindow):
                     p.drawText(QPoint(x + 2, 12), txt)
         finally:
             p.end
+    
+    def mousePressEvent(self, event):
+        # This is a hack. This should be on the ruler... not here.
+        x = event.pos().x()
+        y = event.pos().y()
+        
+        self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
+        
+        if self.clicked_in_ruler:
+            self.ruler_mouseMoveEvent(event)
+    
+    def mouseMoveEvent(self, event):
+        x = event.pos().x()
+        if x > self.header_width:
+            self.ruler_mouseMoveEvent(event)
+    
+    def mouseReleaseEvent(self, event):
+        pass
+    
+    def ruler_mouseMoveEvent(self, event):
+        # We only need to suptrack the header width cause this is not directly
+        # recieving the mouse event.
+        f = event.pos().x() - self.header_width + self.h_scrollbar.value()
+        f = self.unzoom(f)
+        t = f / self.app.doc.mp.fps
+        self.app.time = self.app.doc.mp.time = t
+        self.app.idleEvent(None) # HUGE HACK!
+    
         
     def playhead_layout(self):
         if self.app.doc is not None:
