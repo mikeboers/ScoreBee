@@ -232,6 +232,26 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="step">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="status_window.qrc">
+         <normaloff>:/icons/sweetie/24-arrow-last.png</normaloff>:/icons/sweetie/24-arrow-last.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="fast_forward">
        <property name="text">
         <string/>

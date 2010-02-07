@@ -193,6 +193,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
         self.layout()
     
+    def time_mode_changed(self):
+        self.ruler.repaint()
+    
     def ruler_paintEvent(self, event):
         
         # TODO: This does not use the zoom.

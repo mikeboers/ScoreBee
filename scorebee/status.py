@@ -22,7 +22,7 @@ class StatusWindow(QtGui.QDialog):
         self.ui.time.mousePressEvent = self.time_mousePress
         
         # Connect all the buttons.
-        for name in 'pause play fast_forward rewind go_to_start'.split():
+        for name in 'pause play step fast_forward rewind go_to_start'.split():
             connect(getattr(self.ui, name), SIGNAL('clicked()'), getattr(self, '%s_button' % name))
     
     @property
@@ -37,6 +37,13 @@ class StatusWindow(QtGui.QDialog):
         log.debug('play')
         self.mp.play()
     
+    def step_button(self):
+        log.debug('step')
+        if not self.mp.is_paused:
+            self.mp.pause()
+        self.mp._cmd('frame_step')
+        self.app.sync()
+        
     def fast_forward_button(self):
         if abs(self.speed) >= 8:
             log.debug('too fast already')

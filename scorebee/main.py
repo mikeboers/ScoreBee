@@ -66,12 +66,14 @@ class App(object):
         self.time_mode = next_time_mode()
         
         self.pressed_keys = set()
+        self.track_keys = set()
     
     def format_time(self, time=None):
         return format_time(self.time if time is None else time, self.doc.mp.fps, self.time_mode)
     
     def next_time_mode(self):
         self.time_mode = next_time_mode(self.time_mode)
+        self.signal_time_mode_changed()
     
     @property
     def doc(self):
@@ -82,6 +84,7 @@ class App(object):
         self._doc = doc
         self.status.repaint()
         self.timeline.doc_changed()
+        self.track_keys = set(ord(track.key.upper()) for track in doc)
     
     
     
@@ -96,24 +99,31 @@ class App(object):
         
         time_changed = False
         
-        if not self.doc.mp.is_paused:
+        if self.needs_sync:
+            self.sync()
+        
+        elif not self.doc.mp.is_paused:
             # speed_offset = 1 + self.sync_offset / (self.doc.mp.speed * SYNC_INTERVAL)
             self.time = self.sync_time + self.doc.mp.speed * time_delta
-            time_changed = True
+            self.signal_time_changed()
             
-        if self.needs_sync:
-            # SYNC!
-            new_time = self.doc.mp.time
-            self.sync_offset = new_time - self.time
-            self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
-            self.sync_time = self.time = new_time
-            self.needs_sync = False
-            self.last_sync = this_time
-            time_changed = True
-        
-        if time_changed:
-            self.timeline.time_changed()
-            self.status.time_changed()
+    
+    def sync(self):
+        new_time = self.doc.mp.time
+        self.sync_offset = new_time - self.time
+        self.status.ui.sync.setText('sync: %3dms' % abs(1000 * self.sync_offset))
+        self.sync_time = self.time = new_time
+        self.needs_sync = False
+        self.last_sync = time.time()
+        self.signal_time_changed()
+    
+    def signal_time_changed(self):
+        self.timeline.time_changed()
+        self.status.time_changed()
+    
+    def signal_time_mode_changed(self):
+        self.timeline.time_mode_changed()
+        self.status.time_changed()
     
     def setup_menu(self):
         
@@ -175,16 +185,17 @@ class App(object):
             window.keyReleaseEvent = self.keyReleaseEvent
         
         # This is just a hack for now.
-        self.doc = Document('/Users/mikeboers/Desktop/example.MOV')
+        doc = Document('/Users/mikeboers/Desktop/example.MOV')
         # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
-        self.doc.append(Track('A behaviour', 'q', [
+        doc.append(Track('A behaviour', 'q', [
             Event(10, 15), Event(50, 65), Event(500, 600)
         ]))
-        self.doc.append(Track('Nothin here', 'w', []))
-        self.doc.append(Track('Better one', 'e', [
+        doc.append(Track('Nothin here', 'w', []))
+        doc.append(Track('Better one', 'e', [
             Event(25, 26), Event(70, 71), Event(700, 701)
         ]))
-        self.timeline.doc_changed()
+        
+        self.doc = doc
         
         self.idle_timer.start()
         self.app.exec_()
@@ -203,12 +214,13 @@ class App(object):
     def keyPressEvent(self, event):
         key = event.key()
         self.pressed_keys.add(key)
-        print self.pressed_keys
+        print 'pressed:', self.pressed_keys
         
     def keyReleaseEvent(self, event):
         key = event.key()
-        self.pressed_keys.remove(key)
-        print self.pressed_keys
+        if not (key in self.track_keys and Qt.Key_Shift in self.pressed_keys):
+            self.pressed_keys.remove(key)
+        print 'still..:', self.pressed_keys
 
 app = App(sys.argv)
 
