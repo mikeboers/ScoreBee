@@ -191,8 +191,8 @@ class Application(QObject):
             event.end = self.frame
             self.emit(SIGNAL('updated_event'), event)
 
-
-    def sync(self, verbose=False):
+        
+    def sync(self, threshold=0, verbose=False):
         """Sync up our time keeping with the actual time in the media player.
 
         We also use this to measure what the real speed is.
@@ -200,9 +200,15 @@ class Application(QObject):
         """
         
         start_time = time.time()
+        
+        if start_time - self.mp_sync_time < threshold:
+            if verbose:
+                log.debug('sync under threshold')
+            return
+            
         new_time = self.mp.time
         delta = new_time - self.time
-
+        
         self.mp_time_at_sync = self.time = new_time
         self.mp_sync_time    = start_time
 
@@ -226,9 +232,12 @@ class Application(QObject):
         # Track the key press.
         self.pressed_keys.add(key)
         
+        if key == Qt.Key_Space:
+            self.toggle_pause()
+        
         # If this key is a trigger for a track and there isn't already an
         # open event (ie one in progress already), then make a new one.
-        if key in self.key_to_track and key not in self.key_to_open_event:
+        elif key in self.key_to_track and key not in self.key_to_open_event:
             track = self.key_to_track[key]
             
             # Make sure we are getting an acurate time here. There may be
@@ -237,7 +246,7 @@ class Application(QObject):
             # We could time how long this takes to complete and then subtract
             # that from the time value we get, but we don't know if the delay
             # is on the front or the back. I'm not going to bother for now.
-            self.sync(verbose=True)
+            self.sync(threshold=1.0/30, verbose=True)
             
             # Create the new event, store it in all the right places, and
             # signal to everyone else that it exists.
@@ -262,7 +271,7 @@ class Application(QObject):
                 
                 # Make sure we are getting an accurate time. See my note in
                 # the keyPressEvent for why this can be wrong.
-                self.sync(verbose=True)
+                self.sync(threshold=1.0/30, verbose=True)
                 event.end = self.frame
                 
                 # Let everyone know...
