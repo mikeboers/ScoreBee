@@ -44,7 +44,7 @@ class Track(QObject):
         self.key = key
         self.group = group
         self.ui = None
-        self._events = sorted(events) or []
+        self._events = sorted(events or [])
     
     @property
     def key(self):
@@ -99,6 +99,7 @@ class Document(QObject):
                 events.append(tuple(event))
             tracks.append(dict(
                 name=track.name,
+                group=track.group,
                 key=track.key,
                 events = events
             ))
@@ -121,7 +122,12 @@ class Document(QObject):
             events = []
             for raw_event in raw_track['events']:
                 events.append(Event(*raw_event))
-            tracks.append(Track(raw_track['name'], str(raw_track['key']), events))
+            tracks.append(Track(
+                name=raw_track['name'],
+                key=str(raw_track['key']),
+                group=raw_track['group'],
+                evenets=events
+            ))
         return cls(
             video_path=data['video_path'],
             tracks=tracks

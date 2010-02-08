@@ -21,22 +21,22 @@ if __name__ == '__main__':
         name='A behaviour',
         key='q',
         group='top two',
-        events=[
-            Event(10, 15), Event(50, 65), Event(500, 600)
-        ]
+        # events=[
+        #     Event(10, 15), Event(50, 65), Event(500, 600)
+        # ]
     ))
     doc.add_track(Track(
         name='Nothin here',
         key='w',
         group='top two',
-        events=[]
+        # events=[]
     ))
     doc.add_track(Track(
         name='Better one',
         key='e',
-        events=[
-            Event(25, 26), Event(70, 71), Event(700, 701)
-        ]
+        # events=[
+        #     Event(25, 26), Event(70, 71), Event(700, 701)
+        # ]
     ))
     
     app.doc = doc

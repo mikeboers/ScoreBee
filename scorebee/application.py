@@ -191,7 +191,42 @@ class Application(QObject):
             pass
     
     def handle_file_import_video(self):
-        self.doc.video_path = '/Users/mikeboers/Desktop/example.MOV'
+        
+        # Ask them if they want to override it.
+        if self.doc.video_path:
+            dialog = QMessageBox()
+            dialog.setText("This document's video will be forgotten.");
+            dialog.setInformativeText("Continue?");
+            dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No);
+            dialog.setDefaultButton(QMessageBox.No);
+            if dialog.exec_() == QMessageBox.No:
+                return
+        
+        # Get a movie.
+        path = str(QFileDialog.getOpenFileName(self.timeline,
+            caption="Pick a video to score.",
+            directory="~",
+            filter="Video (*.avi *.mov *.mp4)",
+        ))
+        if not path:
+            return
+        
+        try:
+            video = MPlayer(path)
+        except:
+            log.exception('error while opening video')  
+            dialog = QMessageBox()
+            dialog.setIcon(QMessageBox.Critical)
+            dialog.setText("Error while importing video.");
+            dialog.setInformativeText("MPlayer did not understand the file.");
+            dialog.setStandardButtons(QMessageBox.Ok);
+            dialog.setDefaultButton(QMessageBox.Ok);
+            dialog.exec_()
+                
+            return
+        
+        self.doc.video_path = path
+        self._video = None
         self.emit(SIGNAL('doc_changed'))
     
     def handle_file_save(self):
