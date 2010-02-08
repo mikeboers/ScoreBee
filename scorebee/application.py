@@ -35,7 +35,7 @@ class Application(QObject):
         
         # The document is accessed through a property because we need to
         # signal rebuilding the api whenever it is changed.
-        self.doc = Document()
+        self._doc = None
         self._mp = None
         
         # Build up the three windows.
@@ -219,12 +219,16 @@ class Application(QObject):
         open(path, 'w').write(self.doc.as_string())
         self.doc.path = path
     
+    
     @property
     def mp(self):
         """Always a good (ie. running) mplayer."""
         if self._mp is None or not self._mp.is_running:
             if self.doc.is_ready:
-                self._mp = MPlayer(self.doc.video_src)
+                self._mp = MPlayer(
+                    path=self.doc.video_src,
+                    conf=os.path.abspath(__file__ + '/../../settings/mplayer.txt')
+                )
         return self._mp
     
     def format_time(self, time=None):
@@ -278,6 +282,9 @@ class Application(QObject):
             window = getattr(self, name)
             window.keyPressEvent = self.keyPressEvent
             window.keyReleaseEvent = self.keyReleaseEvent
+            
+        # Start up the document
+        # self.doc = Document()
         
         # Run the main loops.
         self.idle_timer.start()
