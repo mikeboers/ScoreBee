@@ -17,3 +17,6 @@ build: status_window info_window timeline_window
 run: build
 	# RUN
 	python -m scorebee.main
+
+clean:
+	find scorebee -name "*.pyc" | xargs rm -v
