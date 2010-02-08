@@ -55,7 +55,8 @@ class TrackUI(QWidget):
             if event.ui is None:
                 self.timeline.handle_event_created_signal(self.track, event)
             event.ui.layout()
-        
+
+
 class EventUI(QWidget):
     
     def __init__(self, timeline, event, parent):
@@ -219,51 +220,48 @@ class TimelineWindow(QtGui.QMainWindow):
         
         self.layout()
         
-    
     def resizeEvent(self, event):
         self.layout()
-    
     
     def layout(self, event=None):
         
         # Some convenient sizes.
-        w = self.size().width()
-        h = self.size().height()
-        hw = self.header_width # Header width
-        tw = w - hw - SCROLLBAR_WIDTH # Track width
-        th = h - RULER_HEIGHT - SCROLLBAR_WIDTH
+        width = self.size().width()
+        height = self.size().height()
+        header_width = self.header_width # Header width
+        tracks_width = width - header_width - SCROLLBAR_WIDTH # Track width
+        tracks_height = height - RULER_HEIGHT - SCROLLBAR_WIDTH
         h_offset = self.h_scrollbar.value()
         v_offset = self.v_scrollbar.value()
         
         # Data height/width.
         if self.app.doc is not None:
-            dh = TRACK_HEIGHT * len(self.app.doc)
-            dw = self.apply_zoom(self.app.video.frame_count)
+            data_height = TRACK_HEIGHT * len(self.app.doc)
+            data_width = self.apply_zoom(self.app.video.frame_count)
         else:
-            dh = dw = 0
+            data_height = data_width = 0
     
         self.setMinimumSize(self.header_width + 200, 100)
     
-        
-        self.track_container.setGeometry(0, RULER_HEIGHT, w, dh)
+        self.track_container.setGeometry(0, RULER_HEIGHT, width, data_height)
         
         # Adjust the time display and the ruler container width.
-        self.time.setGeometry(0, 0, hw, RULER_HEIGHT)
-        self.ruler_container.setGeometry(hw, 0, tw, RULER_HEIGHT)
-        self.ruler.setGeometry(-h_offset, 0, dw, RULER_HEIGHT) # This only need happen once.
+        self.time.setGeometry(0, 0, header_width, RULER_HEIGHT)
+        self.ruler_container.setGeometry(header_width, 0, tracks_width, RULER_HEIGHT)
+        self.ruler.setGeometry(-h_offset, 0, data_width, RULER_HEIGHT) # This only need happen once.
         
-        self.header_line.setGeometry(self.header_width - 2, -2, 4, h + 4)
-        self.ruler_line .setGeometry(0, RULER_HEIGHT - 2, w, 4)
+        self.header_line.setGeometry(self.header_width - 2, -2, 4, height + 4)
+        self.ruler_line .setGeometry(0, RULER_HEIGHT - 2, width, 4)
         # Scroll bars should be along the bottom and the right side.
-        self.h_scrollbar.setGeometry(self.header_width, h-SCROLLBAR_WIDTH, w - self.header_width - SCROLLBAR_WIDTH, SCROLLBAR_WIDTH)
-        self.v_scrollbar.setGeometry(w-SCROLLBAR_WIDTH, RULER_HEIGHT, SCROLLBAR_WIDTH, h - SCROLLBAR_WIDTH - RULER_HEIGHT)
+        self.h_scrollbar.setGeometry(self.header_width, height-SCROLLBAR_WIDTH, width - self.header_width - SCROLLBAR_WIDTH, SCROLLBAR_WIDTH)
+        self.v_scrollbar.setGeometry(width-SCROLLBAR_WIDTH, RULER_HEIGHT, SCROLLBAR_WIDTH, height - SCROLLBAR_WIDTH - RULER_HEIGHT)
         
-        # Update the scrollbar maximums and step sizes to go along with the
-        # new size and data that we have.
-        self.h_scrollbar.setMaximum(dw - tw if dw > tw else 0)
-        self.h_scrollbar.setPageStep(tw)
-        self.v_scrollbar.setMaximum(dh - th if dh > th else 0)
-        self.v_scrollbar.setPageStep(th)
+        # Update the scrollbar maximums and step sizes to go along widthith the
+        # new size and data that widthe have.
+        self.h_scrollbar.setMaximum(data_width - tracks_width if data_width > tracks_width else 0)
+        self.h_scrollbar.setPageStep(tracks_width)
+        self.v_scrollbar.setMaximum(data_height - tracks_height if data_height > tracks_height else 0)
+        self.v_scrollbar.setPageStep(tracks_height)
         
         # Track headers and data
         if self.app.doc is not None:
