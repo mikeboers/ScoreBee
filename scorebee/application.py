@@ -21,6 +21,9 @@ log = logging.getLogger(__name__)
 WINDOW_NAMES = 'status', 'info', 'timeline'
 
 
+COMBINE_MODE_REPLACE = 'replace'
+COMBINE_MODE_ADD = 'add'
+
 
 class Application(QObject):
     
@@ -192,7 +195,7 @@ class Application(QObject):
             self.emit(SIGNAL('updated_event'), event)
 
         
-    def sync(self, threshold=0, verbose=False):
+    def sync(self, threshold=1.0/30, verbose=False):
         """Sync up our time keeping with the actual time in the media player.
 
         We also use this to measure what the real speed is.
@@ -225,12 +228,18 @@ class Application(QObject):
         else:
             self.mp.pause()
         self.emit(SIGNAL('pause_toggled'))
+    
+    @property
+    def event_combine_mode(self):
+        return COMBINE_MODE_REPLACE if Qt.Key_CapsLock in self.pressed_keys else COMBINE_MODE_ADD
         
     def keyPressEvent(self, event):
         key = event.key()
         
         # Track the key press.
         self.pressed_keys.add(key)
+        
+        print self.event_combine_mode
         
         if key == Qt.Key_Space:
             self.toggle_pause()

@@ -6,19 +6,17 @@ General
 - only do what is absolutely nessesary
 
 
+highlight the event that is active so we know that it is when paused
 
-time_to_frame should be used everywhere.
-	return int(0.5 + time * fps)
+playhead needs to look different when in replace mode
 
-document the code for adding new events
 write out standards for how overriding events work in various circumstances
 record the creation_date of events
 	a list of time/note pairs
 		<time>: created
 		<time>: extended
 
-spacebar should play/pause
-status play/pause should be same button
+warning leaving withou saving
 file saving/loading
 	cleanup all the tracks and event widgets
 

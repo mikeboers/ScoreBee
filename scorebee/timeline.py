@@ -4,7 +4,7 @@ from fractions import Fraction
 import random
 
 from .qt import *
-
+from .util import time_to_frame, frame_to_time
 
 class UIData(object):
     pass
@@ -30,7 +30,7 @@ class EventUI(QWidget):
     
     def layout(self):
         
-        x = self.timeline.frame_to_x(self.event.start)
+        x = self.timeline.apply_zoom(self.event.start)
         width = self.timeline.apply_zoom(self.event.length)
         
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
@@ -38,7 +38,7 @@ class EventUI(QWidget):
     
     def paintEvent(self, event):
         
-        x = self.timeline.frame_to_x(self.event.start)
+        x = self.timeline.apply_zoom(self.event.start)
         width = self.timeline.apply_zoom(self.event.length)
         
         p = QtGui.QPainter(self)
@@ -178,7 +178,8 @@ class TimelineWindow(QtGui.QMainWindow):
             ui.container = QWidget(self.track_container)
             ui.container.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
             ui.header = QLineEdit(ui.container)
-            ui.data = QWidget(ui.container)
+            ui.data_container = QWidget(ui.container)
+            ui.data = QWidget(ui.data_container)
             
             ui.header.setText('%s (%s)' % (track.name, track.key.upper()))
             ui.header.setAlignment(Qt.AlignRight)
@@ -244,7 +245,8 @@ class TimelineWindow(QtGui.QMainWindow):
         for i, track in enumerate(self.tracks):
             track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
             track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
-            track.ui.data.setGeometry(hw, 0, tw, TRACK_HEIGHT)
+            track.ui.data_container.setGeometry(hw, 0, tw, TRACK_HEIGHT)
+            track.ui.data.setGeometry(-h_offset, 0, dw, TRACK_HEIGHT)
             
             for event in track:
                 if event.ui is None:
