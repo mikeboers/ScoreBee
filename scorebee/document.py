@@ -44,7 +44,7 @@ class Track(QObject):
         self.key = key
         self.group = group
         self.ui = None
-        self._events = sorted(events or [])
+        self.events = sorted(events or [])
     
     @property
     def key(self):
@@ -60,42 +60,33 @@ class Track(QObject):
     def key_code(self):
         return ord(self._key)
     
-    def __iter__(self):
-        return iter(self._events)
-    
     def add_event(self, event):
         assert isinstance(event, Event)
-        insort(self._events, event)
+        insort(self.events, event)
     
     def search_index(self, value):
-        return bisect(self._events, value)
+        return bisect(self.events, value)
 
 
 class Document(QObject):
     
     def __init__(self, video_path=None, tracks=None):
         self.video_path = video_path
-        self.path = None
-        self._tracks = tracks or []
+        self.path = None # This is where it was stored. Set by the controller.
+        self.tracks = tracks or []
     
     @property
     def is_ready(self):
         return self.video_path is not None
     
-    def __iter__(self):
-        return iter(self._tracks)
-    
-    def __len__(self):
-        return len(self._tracks)
-    
     def add_track(self, track):
-        self._tracks.append(track)
+        self.tracks.append(track)
     
     def as_string(self):
         tracks = []
-        for track in self:
+        for track in self.tracks:
             events = []
-            for event in track:
+            for event in track.events:
                 events.append(tuple(event))
             tracks.append(dict(
                 name=track.name,
@@ -126,7 +117,7 @@ class Document(QObject):
                 name=raw_track['name'],
                 key=str(raw_track['key']),
                 group=raw_track['group'],
-                evenets=events
+                events=events
             ))
         return cls(
             video_path=data['video_path'],

@@ -2,6 +2,7 @@
 import time
 from fractions import Fraction
 import random
+import logging
 
 from .qt import *
 from .util import time_to_frame, frame_to_time
@@ -16,6 +17,9 @@ SCROLLBAR_WIDTH = 15
 
 RULER_HEIGHT = 25
 TRACK_HEIGHT = 32
+
+
+log = logging.getLogger(__name__)
 
 
 class TrackUI(QWidget):
@@ -51,7 +55,7 @@ class TrackUI(QWidget):
         self.data_container.setGeometry(header_width, 0, width, TRACK_HEIGHT)
         self.data.setGeometry(-h_offset, 0, width + h_offset, TRACK_HEIGHT)
         
-        for event in self.track:
+        for event in self.track.events:
             if event.ui is None:
                 self.timeline.handle_event_created_signal(self.track, event)
             event.ui.layout()
@@ -242,12 +246,16 @@ class TimelineWindow(QtGui.QMainWindow):
         h_offset = self.h_scrollbar.value()
         v_offset = self.v_scrollbar.value()
         
-        # Data height/width.
+        # Dimensions of the data we have.
+        data_height = TRACK_HEIGHT * len(self.app.doc.tracks)
+        data_width = 0
         if self.app.is_ready:
-            data_height = TRACK_HEIGHT * len(self.app.doc)
-            data_width = self.apply_zoom(self.app.video.frame_count)
-        else:
-            data_height = data_width = 0
+            data_width = self.app.video.frame_count
+        for track in self.app.doc.tracks:
+            if track.events:
+                data_width = max(data_width, track.events[-1].end)
+        data_width = self.apply_zoom(data_width)
+        # log.debug('data_width %d' % data_width)
     
         self.setMinimumSize(self.header_width + 200, 100)
     
@@ -273,7 +281,7 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Track headers and data
         if self.app.doc is not None:
-            for i, track in enumerate(self.app.doc):
+            for i, track in enumerate(self.app.doc.tracks):
                 if track.ui is None:
                     self.handle_track_created_signal(track)
                 track.ui.move(0, i * TRACK_HEIGHT)
@@ -394,9 +402,9 @@ class TimelineWindow(QtGui.QMainWindow):
         if event.type() == 2:
             try:
                 self.pass_if_hits(self.ruler)
-                for track in self.app.doc:
+                for track in self.app.doc.tracks:
                     if self.test_hit(track.ui.data):
-                        for event in track:
+                        for event in track.events:
                             self.pass_if_hits(event.ui)
                         break
 

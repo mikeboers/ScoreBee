@@ -312,7 +312,7 @@ class Application(QObject):
     def doc(self, doc):
         
         # Delete all the existing gui.
-        for track in self._doc:
+        for track in self._doc.tracks:
             if track.ui:
                 track.ui.destroy()
                 track.ui.deleteLater()
@@ -323,7 +323,7 @@ class Application(QObject):
         self._video = None
         
         # Setup key tracking mechanisms.
-        self.key_to_track = dict((track.key_code, track) for track in doc)
+        self.key_to_track = dict((track.key_code, track) for track in doc.tracks)
         
         if self.is_ready:
             self.video.time = 0
@@ -438,11 +438,11 @@ class Application(QObject):
     
     def delete_event(self, track, event):
         # XXX: This is really gross... clean this up.
-        event_i = track._events.index(event)
+        event_i = track.events.index(event)
         assert event_i >= 0
         event.ui.destroy()
         event.ui.deleteLater()
-        track._events.pop(event_i)
+        track.events.pop(event_i)
         
     def keyPressEvent(self, event):
         key = event.key()
