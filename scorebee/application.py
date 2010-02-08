@@ -67,6 +67,17 @@ class Application(QObject):
     
     def setup_menu(self):
         menubar = self.timeline.menuBar()
+        
+        timeline_menu = menubar.addMenu("Timeline")
+        zoom_in = QAction("Zoom In", self.timeline)
+        zoom_in.setShortcut(QKeySequence('Ctrl+-'))
+        connect(zoom_in, SIGNAL('triggered()'), self.timeline.zoom_in)
+        timeline_menu.addAction(zoom_in)
+        zoom_out = QAction("Zoom Out", self.timeline)
+        zoom_out.setShortcut("Ctrl++")
+        connect(zoom_out, SIGNAL('triggered()'), self.timeline.zoom_out)
+        timeline_menu.addAction(zoom_out)
+        
         window_menu = menubar.addMenu("Window")
         def make_handler(name):
             def handler():

@@ -29,10 +29,8 @@ class EventUI(QWidget):
         # self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(128) for x in range(3)))
     
     def layout(self):
-        
         x = self.timeline.apply_zoom(self.event.start)
         width = self.timeline.apply_zoom(self.event.length)
-        
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
     
     
@@ -73,7 +71,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.tracks = []
         
         # At zoom level 0, 1 frame will take up 1 pixel.
-        self.zoom_level = 1
+        self.zoom_level = 0
         
         self.build_base_gui()
         
@@ -92,6 +90,14 @@ class TimelineWindow(QtGui.QMainWindow):
     def zoom_factor(self):
         return Fraction(2, 1) ** self.zoom_level
     
+    def zoom_in(self, event=None):
+        self.zoom_level = min(4, self.zoom_level - 1)
+        self.layout()
+    
+    def zoom_out(self, event=None):
+        self.zoom_level = max(-4, self.zoom_level + 1)
+        self.layout()
+        
     def apply_zoom(self, value):
         """Apply the current zoom level to some data."""
         return float(value * Fraction(2, 1) ** self.zoom_level)
@@ -255,6 +261,7 @@ class TimelineWindow(QtGui.QMainWindow):
             for event in track:
                 if event.ui is None:
                     self.handle_new_event_signal(track, event)
+                event.ui.layout()
         
         self.playhead_layout()
     

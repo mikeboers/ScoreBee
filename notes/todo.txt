@@ -22,6 +22,7 @@ file saving/loading
 
 get it into py2app with an icon in the dock
 
+dont let me drag the playhead off the end of the movie
 
 Required
 ========
