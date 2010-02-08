@@ -1,7 +1,7 @@
 
 
 from bisect import bisect, insort
-
+import json
 
 from .qt import *
 
@@ -21,6 +21,9 @@ class Event(QObject):
     
     def __repr__(self):
         return 'Event(%r, %r)' % (self.start, self.end)
+    
+    def __iter__(self):
+        return iter((self.start, self.end))
     
     def __lt__(self, other):
         if isinstance(other, Event):
@@ -70,6 +73,7 @@ class Document(QObject):
     
     def __init__(self, video_src, tracks=None):
         self.video_src = video_src
+        self.path = None
         self._tracks = tracks or []
     
     def __iter__(self):
@@ -80,6 +84,42 @@ class Document(QObject):
     
     def add_track(self, track):
         self._tracks.append(track)
+    
+    def as_string(self):
+        tracks = []
+        for track in self:
+            events = []
+            for event in track:
+                events.append(tuple(event))
+            tracks.append(dict(
+                name=track.name,
+                key=track.key,
+                events = events
+            ))
+        data = dict(
+            version=1,
+            video_src=self.video_src,
+            tracks=tracks
+        )
+        return json.dumps(data, indent=4, sort_keys=True)
+    
+    @classmethod
+    def from_string(cls, raw):
+        data = json.loads(raw)
+        return getattr(cls, 'from_string_v%s' % data['version'])(data)
+    
+    @classmethod
+    def from_string_v1(cls, data):
+        tracks = []
+        for raw_track in data['tracks']:
+            events = []
+            for raw_event in raw_track['events']:
+                events.append(Event(*raw_event))
+            tracks.append(Track(raw_track['name'], str(raw_track['key']), events))
+        return cls(
+            video_src=data['video_src'],
+            tracks=tracks
+        )
 
 
 

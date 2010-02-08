@@ -150,6 +150,8 @@ class Application(QObject):
         try:
             if self.ask_to_save_if_required():
                 self.save()
+            doc = Document.from_string(open('template.scorb').read())
+            self.doc = doc
         except ValueError:
             pass
     
@@ -158,6 +160,17 @@ class Application(QObject):
         try:
             if self.ask_to_save_if_required():
                 self.save()
+            path = str(QFileDialog.getOpenFileName(self.timeline,
+                caption="Pick a file to open.",
+                directory="~",
+                filter="ScoreBee (*.scorb)",
+            ))
+            if not path:
+                raise ValueError('user cancelled')
+            doc = Document.from_string(open(path).read())
+            doc.path = path
+            
+            self.doc = doc
         except ValueError:
             pass
     
@@ -182,8 +195,29 @@ class Application(QObject):
         log.debug('Edit > Undo')
         pass    
     
-    def save(self, save_as=True):
-        print 'save', save_as
+    def save(self, save_as=False):
+        if self.doc.path is None or save_as:
+            path = str(QFileDialog.getSaveFileName(self.timeline,
+                caption="Save File",
+                directory='/Users/mikeboers/Desktop',
+                filter="ScoreBee (*.scorb)",
+            ))
+            if not len(path):
+                raise ValueError('user canceled')
+        else:
+            path = self.doc.path
+        
+        # Make a backup if it already exists:
+        if os.path.exists(path):
+            backup_dir = os.path.dirname(path) + '/backup'
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            backup_path = backup_dir + '/' + time.strftime('%Y-%m-%dT%H-%M-%S') + '.' + os.path.basename(path)
+            open(backup_path, 'w').write(open(path, 'r').read())
+        
+        # Do the saving
+        open(path, 'w').write(self.doc.as_string())
+        self.doc.path = path
     
     @property
     def mp(self):
@@ -243,22 +277,6 @@ class Application(QObject):
             window.keyPressEvent = self.keyPressEvent
             window.keyReleaseEvent = self.keyReleaseEvent
         
-        # Load a document.
-        # We absolutely MUST have the document constructed fully BEFORE
-        # setting it here. There are side effects to setting it.
-        # HACK: This is just a hack for now.
-        doc = Document('/Users/mikeboers/Desktop/example.MOV')
-        # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
-        doc.add_track(Track('A behaviour', 'q', [
-            Event(10, 15), Event(50, 65), Event(500, 600)
-        ]))
-        doc.add_track(Track('Nothin here', 'w', []))
-        doc.add_track(Track('Better one', 'e', [
-            Event(25, 26), Event(70, 71), Event(700, 701)
-        ]))
-        
-        self.doc = doc
-        
         # Run the main loops.
         self.idle_timer.start()
         self.app.exec_()
@@ -285,6 +303,10 @@ class Application(QObject):
         Treat this as our main loop.
 
         """
+        
+        if not self.doc:
+            return
+        
         now = time.time()
         time_delta = now - self.mp_sync_time
 
@@ -377,8 +399,9 @@ class Application(QObject):
         # Ignore the release event if it is a track trigger, and the shift
         # button is held down. This effectively makes the keys sticky. One can
         # cancel it by hitting it normally.
-        if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):      
-            self.pressed_keys.remove(key)  
+        if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):   
+            # Discard doesn't error if the key isn't in there.
+            self.pressed_keys.discard(key)
             
             if key in self.key_to_open_event:
                 event = self.key_to_open_event.pop(key)

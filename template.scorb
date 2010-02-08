@@ -1,0 +1,21 @@
+{
+    "tracks": [
+        {
+        	"name": "A behaviour",
+            "key": "Q",
+            "events": [], 
+        }, 
+        {
+            "events": [], 
+            "key": "W", 
+            "name": "Nothin here"
+        }, 
+        {
+            "events": [], 
+            "key": "E", 
+            "name": "Better one"
+        }
+    ], 
+    "version": 1, 
+    "video_src": "/Users/mikeboers/Desktop/example.MOV"
+}
