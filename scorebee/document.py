@@ -71,14 +71,14 @@ class Track(QObject):
 
 class Document(QObject):
     
-    def __init__(self, video_src=None, tracks=None):
-        self.video_src = video_src
+    def __init__(self, video_path=None, tracks=None):
+        self.video_path = video_path
         self.path = None
         self._tracks = tracks or []
     
     @property
     def is_ready(self):
-        return self.video_src is not None
+        return self.video_path is not None
     
     def __iter__(self):
         return iter(self._tracks)
@@ -102,7 +102,7 @@ class Document(QObject):
             ))
         data = dict(
             version=1,
-            video_src=self.video_src,
+            video_path=self.video_path,
             tracks=tracks
         )
         return json.dumps(data, indent=4, sort_keys=True)
@@ -121,7 +121,7 @@ class Document(QObject):
                 events.append(Event(*raw_event))
             tracks.append(Track(raw_track['name'], str(raw_track['key']), events))
         return cls(
-            video_src=data['video_src'],
+            video_path=data['video_path'],
             tracks=tracks
         )
 

@@ -9,10 +9,14 @@ General
 The app needs to be stable when there is no tracks and no video specified:
 	- There should never NOT be a document. It can be a empty one, but there
 	should always be one in there.
-	- mp is only not null when there is video_src in the doc.
+	- mp is only not null when there is video_path in the doc.
 	- signals should let everything know when stuff is ready or not
 		- disable keyboard commands, disable play controls.
 	- how does mp deal with a missing movie?
+
+
+playhead should jump to start when go_to-start button is hit
+play-pause button icon should update when we hit the end of the video
 
 
 

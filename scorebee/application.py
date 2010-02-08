@@ -226,7 +226,7 @@ class Application(QObject):
         if self._mp is None or not self._mp.is_running:
             if self.doc.is_ready:
                 self._mp = MPlayer(
-                    path=self.doc.video_src,
+                    path=self.doc.video_path,
                     conf=os.path.abspath(__file__ + '/../../settings/mplayer.txt')
                 )
         return self._mp

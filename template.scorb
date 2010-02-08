@@ -17,5 +17,5 @@
         }
     ], 
     "version": 1, 
-    "video_src": "/Users/mikeboers/Desktop/example.MOV"
+    "video_path": "/Users/mikeboers/Desktop/example.MOV"
 }
