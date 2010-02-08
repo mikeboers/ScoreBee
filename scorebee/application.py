@@ -288,10 +288,11 @@ class Application(QObject):
         
         # Run the main loops.
         self.idle_timer.start()
-        self.app.exec_()
-        
-        # HACK: Kill the MPlayer
-        self.doc._mp = None
+        try:
+            self.app.exec_()
+        finally:
+            # HACK: Kill the MPlayer
+            self.doc._mp = None
         
         # Save window sizes and locations for the next startup.
         window_prefs = {}
@@ -328,7 +329,7 @@ class Application(QObject):
             
         for event in self.key_to_open_event.values():
             event.end = self.frame
-            self.emit(SIGNAL('updated_event'), event)
+            self.emit(SIGNAL('event_updated'), event)
 
         
     def sync(self, threshold=1.0/30, verbose=False):
@@ -398,7 +399,7 @@ class Application(QObject):
             event = Event(frame, frame)
             track.add_event(event)
             self.key_to_open_event[key] = event
-            self.emit(SIGNAL('new_event'), track, event)
+            self.emit(SIGNAL('event_created'), track, event)
             
 
     def keyReleaseEvent(self, event):
@@ -421,7 +422,7 @@ class Application(QObject):
                 event.end = self.frame
             
                 # Let everyone know...
-                self.emit(SIGNAL('updated_event'), event)
+                self.emit(SIGNAL('event_updated'), event)
 
 
 

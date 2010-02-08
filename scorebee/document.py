@@ -42,6 +42,7 @@ class Track(QObject):
     def __init__(self, name, key, events):
         self.name = name
         self.key = key
+        self.ui = None
         self._events = sorted(events) or []
     
     @property

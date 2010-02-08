@@ -18,6 +18,59 @@ RULER_HEIGHT = 25
 TRACK_HEIGHT = 32
 
 
+class TrackUI(QWidget):
+    
+    def __init__(self, timeline, track, parent):
+        QWidget.__init__(self, parent)
+        self.timeline = timeline
+        self.track = track
+        
+        self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
+        self.data_container = QWidget(self)
+        self.data = QWidget(self.data_container)
+        
+        self.header = QLineEdit(self)
+        self.header.setText('%s (%s)' % (track.name, track.key.upper()))
+        self.header.setAlignment(Qt.AlignRight)
+        self.header.setReadOnly(True)
+        self.header.setFrame(False)
+        font = QFont()
+        font.setFamily("Courier New")
+        font.setPointSize(12)
+        font.setBold(True)
+        self.header.setFont(font)
+    
+    def layout(self):
+        
+        # THIS IS REALLY GROSS!!!
+        # Some convenient sizes.
+        w = self.timeline.size().width()
+        h = self.timeline.size().height()
+        hw = self.timeline.header_width # Header width
+        tw = w - hw - SCROLLBAR_WIDTH # Track width
+        th = h - RULER_HEIGHT - SCROLLBAR_WIDTH
+        h_offset = self.timeline.h_scrollbar.value()
+        v_offset = self.timeline.v_scrollbar.value()
+        
+        # Data height/width.
+        if self.timeline.app.doc is not None:
+            dh = TRACK_HEIGHT * len(self.timeline.app.doc)
+            dw = self.timeline.apply_zoom(self.timeline.app.video.frame_count)
+        else:
+            dh = dw = 0
+        
+        track_i = self.timeline.tracks.index(self.track)
+        
+        self.setGeometry(0, track_i * TRACK_HEIGHT, w, TRACK_HEIGHT)
+        self.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
+        self.data_container.setGeometry(hw, 0, tw, TRACK_HEIGHT)
+        self.data.setGeometry(-h_offset, 0, dw, TRACK_HEIGHT)
+        
+        for event in self.track:
+            if event.ui is None:
+                self.timeline.handle_event_created_signal(self.track, event)
+            event.ui.layout()
+        
 class EventUI(QWidget):
     
     def __init__(self, timeline, event, parent):
@@ -26,7 +79,6 @@ class EventUI(QWidget):
         self.event = event
         
         self.pen_color = QColor(*tuple(random.randrange(128) for x in range(3)))
-        # self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(128) for x in range(3)))
     
     def layout(self):
         x = self.timeline.apply_zoom(self.event.start)
@@ -82,9 +134,12 @@ class TimelineWindow(QtGui.QMainWindow):
         
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_mode_change_event)
-        connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_event)
-        connect(self.app, SIGNAL('new_event'), self.handle_new_event_signal)
-        connect(self.app, SIGNAL('updated_event'), self.handle_updated_event_signal)
+        
+        connect(self.app, SIGNAL('event_created'), self.handle_event_created_signal)
+        connect(self.app, SIGNAL('event_updated'), self.handle_event_updated_signal)
+        
+        connect(self.app, SIGNAL('track_created'), self.handle_track_created_signal)
+        
     
     @property
     def zoom_factor(self):
@@ -178,38 +233,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.header_line.mouseMoveEvent = self.header_line_mouseMoveEvent
         
         self.layout()
-    
-    def handle_doc_changed_event(self):
         
-        # TODO: Delete them with deleteLater (or something)
-        for track in self.tracks:
-            track.ui.container.destroy()
-            
-        self.tracks = list(self.app.doc)
-        
-        for i, track in enumerate(self.tracks):
-            
-            track.ui = ui = UIData() # This is just a generic object.
-            ui.container = QWidget(self.track_container)
-            ui.container.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
-            ui.header = QLineEdit(ui.container)
-            ui.data_container = QWidget(ui.container)
-            ui.data = QWidget(ui.data_container)
-            
-            ui.header.setText('%s (%s)' % (track.name, track.key.upper()))
-            ui.header.setAlignment(Qt.AlignRight)
-            ui.header.setReadOnly(True)
-            ui.header.setFrame(False)
-            font = QFont()
-            font.setFamily("Courier New")
-            font.setPointSize(12)
-            font.setBold(True)
-            ui.header.setFont(font)
-        
-        self.layout()
-        
-        for track in self.tracks:
-            track.ui.container.show()
     
     def resizeEvent(self, event):
         self.layout()
@@ -227,7 +251,7 @@ class TimelineWindow(QtGui.QMainWindow):
         v_offset = self.v_scrollbar.value()
         
         # Data height/width.
-        if self.app.doc:
+        if self.app.doc is not None:
             dh = TRACK_HEIGHT * len(self.app.doc)
             dw = self.apply_zoom(self.app.video.frame_count)
         else:
@@ -257,26 +281,27 @@ class TimelineWindow(QtGui.QMainWindow):
         self.v_scrollbar.setPageStep(th)
         
         # Track headers and data
-        for i, track in enumerate(self.tracks):
-            track.ui.container.setGeometry(0, i * TRACK_HEIGHT, w, TRACK_HEIGHT)
-            track.ui.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
-            track.ui.data_container.setGeometry(hw, 0, tw, TRACK_HEIGHT)
-            track.ui.data.setGeometry(-h_offset, 0, dw, TRACK_HEIGHT)
-            
-            for event in track:
-                if event.ui is None:
-                    self.handle_new_event_signal(track, event)
-                event.ui.layout()
+        if self.app.doc is not None:
+            for track in self.app.doc:
+                if track.ui is None:
+                    self.handle_track_created_signal(track)
+                track.ui.layout()
         
         self.playhead_layout()
     
-    def handle_new_event_signal(self, track, event):
-        event.ui = ui = EventUI(self, event, track.ui.data)
-        ui.show()
-        ui.layout()
-    
-    def handle_updated_event_signal(self, event):
+    def handle_event_created_signal(self, track, event):
+        event.ui = EventUI(self, event, track.ui.data)
         event.ui.layout()
+        event.ui.show()
+    
+    def handle_event_updated_signal(self, event):
+        event.ui.layout()
+        
+    def handle_track_created_signal(self, track):    
+        self.tracks.append(track)
+        track.ui = TrackUI(self, track, self.track_container)
+        track.ui.layout()
+        track.ui.show()
 
     def header_line_mouseMoveEvent(self, event):
         self.header_width = min(self.header_max_width, max(self.header_min_width, self.header_line.pos().x() + event.x()))
