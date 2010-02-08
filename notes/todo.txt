@@ -2,8 +2,7 @@
 General
 =======
 
-- ruler gets fucked up past 6 minutes into a video
-	- so do events
+
 
 - make sure to keep everything very MVC.
 - only do what is absolutely nessesary

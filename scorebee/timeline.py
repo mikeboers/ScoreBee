@@ -256,14 +256,11 @@ class TimelineWindow(QtGui.QMainWindow):
     
         self.setMinimumSize(self.header_width + 200, 100)
     
-        self.track_container.setGeometry(0, RULER_HEIGHT, width, data_height)
+        self.track_container.setGeometry(0, RULER_HEIGHT, self.header_width + data_width, data_height)
         
         # Adjust the time display and the ruler container width.
         self.time.setGeometry(0, 0, header_width, RULER_HEIGHT)
         self.ruler.setGeometry(header_width, 0, tracks_width, RULER_HEIGHT)
-        # Need to use move for when the value gets too big
-        # self.ruler.move(-h_offset, 0)
-        # self.ruler.resize(data_width, RULER_HEIGHT)
         self.ruler.repaint()
         
         self.header_line.setGeometry(self.header_width - 2, -2, 4, height + 4)
@@ -277,7 +274,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.h_scrollbar.setMaximum(data_width - tracks_width if data_width > tracks_width else 0)
         self.h_scrollbar.setPageStep(tracks_width)
         self.v_scrollbar.setMaximum(data_height - tracks_height if data_height > tracks_height else 0)
-        self.v_scrollbar.setPageStep(tracks_height)
+        if self.app.video:
+            self.h_scrollbar.setSingleStep(self.app.video.fps * self.zoom_factor)
+            self.v_scrollbar.setPageStep(self.app.video.fps * self.zoom_factor)
         
         # Track headers and data
         if self.app.doc is not None:
