@@ -292,7 +292,7 @@ class Application(QObject):
             self.app.exec_()
         finally:
             # HACK: Kill the MPlayer
-            self.doc._video = None
+            self._video = None
         
         # Save window sizes and locations for the next startup.
         window_prefs = {}
