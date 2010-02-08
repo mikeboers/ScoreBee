@@ -106,8 +106,6 @@ class TimelineWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.app = app
         
-        self.tracks = []
-        
         # At zoom level 0, 1 frame will take up 1 pixel.
         self.zoom_level = 0
         
@@ -281,8 +279,7 @@ class TimelineWindow(QtGui.QMainWindow):
     def handle_event_updated_signal(self, event):
         event.ui.layout()
         
-    def handle_track_created_signal(self, track):    
-        self.tracks.append(track)
+    def handle_track_created_signal(self, track):
         track.ui = TrackUI(self, track, self.track_container)
         track.ui.layout()
         track.ui.show()
