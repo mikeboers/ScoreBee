@@ -13,7 +13,7 @@ from .document import Document, Track, Event
 from .mplayer import MPlayer
 from .util import next_time_mode, format_time
 from . import config as cfg
-
+from .templates import templates
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +82,13 @@ class Application(QObject):
         new.setShortcut('Ctrl+N')
         connect(new, SIGNAL('triggered()'), self.handle_file_new)
         file_menu.addAction(new)
+        
+        new_from_template = QMenu("New From Template", self.timeline)
+        file_menu.addMenu(new_from_template)
+        for name in templates:
+            action = QAction(name, self.timeline)
+            connect(action, SIGNAL('triggered()'), lambda name=name: self.handle_file_new_from_template(name))
+            new_from_template.addAction(action)
         
         open_ = QAction("Open...", self.timeline)
         open_.setShortcut('Ctrl+O')
@@ -166,11 +173,22 @@ class Application(QObject):
         try:
             if self.ask_to_save_if_required():
                 self.save()
-            doc = Document.from_string(open('template.scorb').read())
-            self.doc = doc
+            self.doc = Document()
         except ValueError:
             pass
     
+    def handle_file_new_from_template(self, name):
+        log.debug('File > New From Template > %r' % name)
+        try:
+            if self.ask_to_save_if_required():
+                self.save()
+            doc = Document()
+            for kwargs in templates[name]:
+                doc.tracks.append(Track(**kwargs))
+            self.doc = doc
+        except ValueError:
+            pass
+        
     def handle_file_open(self):
         log.debug('File > Open')
         try:
