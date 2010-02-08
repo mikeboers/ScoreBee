@@ -121,6 +121,8 @@ class TimelineWindow(QtGui.QMainWindow):
         # Ie. I hacked it together.
         self.clicked_in_ruler = False
         
+        connect(self.app, SIGNAL('doc_changed'), self.layout)
+        
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_event)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_mode_change_event)
         
@@ -241,7 +243,7 @@ class TimelineWindow(QtGui.QMainWindow):
         v_offset = self.v_scrollbar.value()
         
         # Data height/width.
-        if self.app.doc is not None:
+        if self.app.is_ready:
             data_height = TRACK_HEIGHT * len(self.app.doc)
             data_width = self.apply_zoom(self.app.video.frame_count)
         else:
@@ -445,7 +447,10 @@ class TimelineWindow(QtGui.QMainWindow):
     
         
     def playhead_layout(self):
-        if self.app.doc is not None:            
+        if not self.app.is_ready:
+            self.playhead.move(-1000, 0)
+            
+        else:     
             x = self.time_to_x(self.app.time)
             
             self.playhead_container.setGeometry(

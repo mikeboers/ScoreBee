@@ -35,22 +35,9 @@ class Application(QObject):
         
         # The document is accessed through a property because we need to
         # signal rebuilding the api whenever it is changed.
-        self._doc = None #Document()
+        self._doc = Document()
         self._video = None
         
-        # Build up the three windows.
-        self.timeline = TimelineWindow(self)
-        self.status   = StatusWindow(self, self.timeline)
-        self.info     = InfoWindow(self, self.timeline)
-        
-        self.setup_menu()
-        
-        # Setup our main loop timer.
-        self.idle_timer = QTimer()
-        self.idle_timer.setInterval(10) # milliseconds
-        self.idle_timer.timerEvent = self.main_loop
-        
-        self.last_loop_time = 0
         
         self.time = 0 # Our guess for the current time.
         self.video_sync_time = 0 # Last time we synced to mplayer's time.
@@ -72,6 +59,19 @@ class Application(QObject):
         
         # A mapping of group names to events that are in progress.
         self.group_to_open_event = {}
+        
+        # Build up the three windows.
+        self.timeline = TimelineWindow(self)
+        self.status   = StatusWindow(self, self.timeline)
+        self.info     = InfoWindow(self, self.timeline)
+        
+        self.setup_menu()
+        
+        # Setup our main loop timer.
+        self.idle_timer = QTimer()
+        self.idle_timer.setInterval(10) # milliseconds
+        self.idle_timer.timerEvent = self.main_loop
+        self.last_loop_time = 0
     
     def setup_menu(self):
         menubar = self.timeline.menuBar()
@@ -145,7 +145,7 @@ class Application(QObject):
     def ask_to_save_if_required(self):
         if self.doc:
             dialog = QMessageBox()
-            dialog.setText("The document (has) have been modified.");
+            dialog.setText("The document (may) have been modified.");
             dialog.setInformativeText("Do you want to save your changes?");
             dialog.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel);
             dialog.setDefaultButton(QMessageBox.Save);
@@ -256,21 +256,35 @@ class Application(QObject):
         Setting this has major side effects."""
         return self._doc
     
+    @property
+    def is_ready(self):
+        if not self.doc.video_path:
+            return False
+        return True
+    
     @doc.setter
     def doc(self, doc):
         
-        self._doc = doc
-        self._video = None # Forces a new mplayer with the new video.
+        # Delete all the existing gui.
+        for track in self._doc:
+            if track.ui:
+                track.ui.destroy()
+                track.ui.deleteLater()
         
+        self._doc = doc
+        
+        # Destroy the old video player. A new one will be created when requested.
+        self._video = None
+        
+        # Setup key tracking mechanisms.
         self.key_to_track = dict((track.key_code, track) for track in doc)
         
-        if doc.is_ready:
+        if self.is_ready:
             self.video.time = 0
             self.sync()
         
-        # Force it to deal with the new document.
-        # XXX: HACK.
-        self.timeline.layout()
+        # Force everything to deal with the new document.
+        self.emit(SIGNAL('doc_changed'))
     
     def run(self):
         
@@ -392,7 +406,7 @@ class Application(QObject):
             return
         self.pressed_keys.add(key)
         
-        log.debug('keyPressEvent %d' % key)
+        # log.debug('keyPressEvent %d' % key)
         
         if key == Qt.Key_Space:
             self.toggle_pause()
@@ -445,7 +459,7 @@ class Application(QObject):
     def keyReleaseEvent(self, event):
         key = event.key()
         
-        log.debug('keyReleaseEvent %d' % key)
+        # log.debug('keyReleaseEvent %d' % key)
         
         # Ignore the release event if it is a track trigger, and the shift
         # button is held down. This effectively makes the keys sticky. One can
@@ -462,8 +476,6 @@ class Application(QObject):
                     del self.group_to_open_event[track.group]
                 
                 self.close_event(event)
-        
-        print self.pressed_keys
                 
 
 
