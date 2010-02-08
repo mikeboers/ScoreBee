@@ -70,6 +70,7 @@ class EventUI(QWidget):
         x = self.timeline.apply_zoom(self.event.start)
         width = self.timeline.apply_zoom(self.event.length)
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
+        print self.rect()
     
     
     def paintEvent(self, event):
@@ -189,6 +190,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ruler_container = QWidget(self)
         self.ruler = QWidget(self.ruler_container)
         self.ruler.paintEvent = self.ruler_paintEvent
+        self.ruler.mousePressEvent = self.ruler_mousePressEvent
+        self.ruler.mouseMoveEvent  = self.ruler_mouseMoveEvent
+        self.ruler.mouseReleaseEvent  = self.ruler_mouseReleaseEvent
     
         self.v_scrollbar = QScrollBar(Qt.Vertical, self)
         self.v_scrollbar.setMaximum(0) # Disable it.
@@ -353,10 +357,44 @@ class TimelineWindow(QtGui.QMainWindow):
         finally:
             p.end
     
-    def mousePressEvent(self, event):
-        # This is a hack. This should be on the ruler... not here.
-        x = event.pos().x()
-        y = event.pos().y()
+        
+    def pass_if_hits(self, obj):
+        if obj.rect().contains(obj.mapFromGlobal(self._pos)):
+            if self._event.type() == 2:
+                self._mouse_reciever = obj
+            self.pass_event(obj)
+            raise ValueError('good')
+    
+    _mouse_reciever = None
+    
+    def pass_event(self, obj):
+        event = self._event       
+        event = QMouseEvent(event.type(), obj.mapFromGlobal(event.globalPos()), event.button(), event.buttons(), Qt.KeyboardModifiers(0))
+        getattr(obj, {
+            2: 'mousePressEvent',
+            5: 'mouseMoveEvent',
+            3: 'mouseReleaseEvent',
+        }[event.type()])(event)
+    
+    def mouse_event_handler(self, event):
+        
+        self._pos = event.globalPos()
+        self._event = event
+        
+        if event.type() != 2:
+            if self._mouse_reciever is not None:
+                self.pass_event(self._mouse_reciever)
+            return
+        
+        try:
+            self.pass_if_hits(self.ruler)
+        except ValueError as e:
+            if e.args[0] != 'good':
+                raise
+        
+        if event.type() == 3:
+            self._mouse_reciever = None
+        return
         
         self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
         
@@ -366,22 +404,31 @@ class TimelineWindow(QtGui.QMainWindow):
                 self.app.video.pause()
             self.ruler_mouseMoveEvent(event)
     
-    def mouseMoveEvent(self, event):
-        x = event.pos().x()
-        if x > self.header_width and self.clicked_in_ruler:
-            self.ruler_mouseMoveEvent(event)
+    mousePressEvent   = mouse_event_handler
+    mouseMoveEvent    = mouse_event_handler
+    mouseReleaseEvent = mouse_event_handler
     
-    def mouseReleaseEvent(self, event):        
-        if self.clicked_in_ruler and self.was_playing:
-            self.app.video.play()
+    
+    def ruler_mousePressEvent(self, event):
+        # print 'press'
+        self.was_playing = self.app.video.is_playing
+        if self.was_playing:
+            self.app.video.pause()
+        self.ruler_mouseMoveEvent(event)
     
     def ruler_mouseMoveEvent(self, event):
-        # We only need to suptrack the header width cause this is not directly
-        # recieving the mouse event.
-        t = self.x_to_time(event.pos().x() - self.header_width)
+        # print 'move'
+        f = self.unapply_zoom(event.pos().x())
+        t = frame_to_time(f, self.app.video.fps)
+        t = max(0, t)
         if t < self.app.video.length:
             self.app.time = self.app.video.time = t
             self.app.sync() # HUGE HACK!
+    
+    def ruler_mouseReleaseEvent(self, event):
+        # print 'release'
+        if self.was_playing:
+            self.app.video.play()
     
         
     def playhead_layout(self):
