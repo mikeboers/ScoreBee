@@ -125,6 +125,7 @@ class Application(QObject):
                     window.layout()
                 else:
                     window.repaint()
+                window.activateWindow()
                 window.raise_()
             return handler
         for i, name in enumerate(WINDOW_NAMES):
