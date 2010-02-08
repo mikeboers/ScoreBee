@@ -30,8 +30,7 @@ class TrackUI(QWidget):
         self.track = track
         
         self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
-        self.data_container = QWidget(self)
-        self.data = QWidget(self.data_container)
+        self.data = QWidget(self)
         
         self.header = QLineEdit(self)
         self.header.setText('%s %s<%s>' % (track.name, '(%s) ' % track.group if track.group else '', track.key.upper()))
@@ -52,10 +51,7 @@ class TrackUI(QWidget):
         
         self.resize(width, TRACK_HEIGHT)
         self.header.setGeometry(0, 0, header_width, TRACK_HEIGHT)
-        self.data_container.setGeometry(header_width, 0, width, TRACK_HEIGHT)
-        # Need to use move for when the number becomes far too negative.
-        self.data.move(-h_offset, 0)
-        self.data.resize(width + h_offset, TRACK_HEIGHT)
+        self.data.setGeometry(header_width, 0, width, TRACK_HEIGHT)
         
         for event in self.track.events:
             if event.ui is None:
@@ -74,7 +70,7 @@ class EventUI(QWidget):
         self.pen_color = QColor(*tuple(random.randrange(128) for x in range(3)))
     
     def layout(self):
-        x = self.timeline.apply_zoom(self.event.start)
+        x = self.timeline.apply_zoom(self.event.start - self.timeline.h_scrollbar.value())
         width = self.timeline.apply_zoom(self.event.length)
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
     
