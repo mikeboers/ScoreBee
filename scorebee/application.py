@@ -212,6 +212,13 @@ class Application(QObject):
         
         if verbose:
             log.debug('synced in %.2fms' % (1000 * (time.time() - start_time)))
+    
+    def toggle_pause(self):
+        if self.mp.is_paused:
+            self.mp.play()
+        else:
+            self.mp.pause()
+        self.emit(SIGNAL('pause_toggled'))
         
     def keyPressEvent(self, event):
         key = event.key()

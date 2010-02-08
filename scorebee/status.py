@@ -20,24 +20,32 @@ class StatusWindow(QtGui.QDialog):
         self.ui.time.mousePressEvent = self.time_mousePress
         
         # Connect all the buttons.
-        for name in 'pause play step fast_forward rewind go_to_start'.split():
+        for name in 'play step fast_forward rewind go_to_start'.split():
             connect(getattr(self.ui, name), SIGNAL('clicked()'), getattr(self, '%s_button' % name))
         
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_signal)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_signal)
         connect(self.app, SIGNAL('synced'), self.handle_synced_signal)
+        
+        self.play_icon = QIcon(":/icons/sweetie/24-arrow-next.png")
+        self.pause_icon = QIcon(":/icons/sweetie/24-control-pause.png")
+        
+        connect(self.app, SIGNAL('pause_toggled'), self.handle_pause_toggled_signal)
     
     @property
     def mp(self):
         return self.app.mp
     
-    def pause_button(self):
-        log.debug('pause')
-        self.mp.pause()
-    
     def play_button(self):
-        log.debug('play')
-        self.mp.play()
+        log.debug('play/pause')
+        self.app.toggle_pause()
+    
+    def handle_pause_toggled_signal(self):
+        if self.app.mp.is_paused:
+            self.ui.play.setIcon(self.play_icon)
+        else:
+            self.ui.play.setIcon(self.pause_icon)
+        
     
     def step_button(self):
         log.debug('step')
