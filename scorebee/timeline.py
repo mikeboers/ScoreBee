@@ -367,8 +367,9 @@ class TimelineWindow(QtGui.QMainWindow):
         # We only need to suptrack the header width cause this is not directly
         # recieving the mouse event.
         t = self.x_to_time(event.pos().x() - self.header_width)
-        self.app.time = self.app.mp.time = t
-        self.app.sync() # HUGE HACK!
+        if t < self.app.mp.length:
+            self.app.time = self.app.mp.time = t
+            self.app.sync() # HUGE HACK!
     
         
     def playhead_layout(self):

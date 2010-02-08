@@ -68,15 +68,17 @@ class Application(QObject):
     def setup_menu(self):
         menubar = self.timeline.menuBar()
         
-        timeline_menu = menubar.addMenu("Timeline")
+        view_menu = menubar.addMenu("View")
+        
         zoom_in = QAction("Zoom In", self.timeline)
-        zoom_in.setShortcut(QKeySequence('Ctrl+-'))
+        zoom_in.setShortcut('Ctrl+-')
         connect(zoom_in, SIGNAL('triggered()'), self.timeline.zoom_in)
-        timeline_menu.addAction(zoom_in)
+        view_menu.addAction(zoom_in)
+        
         zoom_out = QAction("Zoom Out", self.timeline)
         zoom_out.setShortcut("Ctrl++")
         connect(zoom_out, SIGNAL('triggered()'), self.timeline.zoom_out)
-        timeline_menu.addAction(zoom_out)
+        view_menu.addAction(zoom_out)
         
         window_menu = menubar.addMenu("Window")
         def make_handler(name):
@@ -246,6 +248,7 @@ class Application(QObject):
         
     def keyPressEvent(self, event):
         key = event.key()
+        # log.debug('keyPressEvent %d' % key)
         
         # Track the key press.
         self.pressed_keys.add(key)
@@ -277,22 +280,24 @@ class Application(QObject):
 
     def keyReleaseEvent(self, event):
         key = event.key()
+        # log.debug('keyReleaseEvent %d' % key)
         
         # Ignore the release event if it is a track trigger, and the shift
         # button is held down. This effectively makes the keys sticky. One can
         # cancel it by hitting it normally.
-        if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):
-            print self.pressed_keys
+        if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):      
+            self.pressed_keys.remove(key)  
             
             if key in self.key_to_open_event:
                 event = self.key_to_open_event.pop(key)
-                
+            
                 # Make sure we are getting an accurate time. See my note in
                 # the keyPressEvent for why this can be wrong.
                 self.sync(threshold=1.0/30, verbose=True)
                 event.end = self.frame
-                
+            
                 # Let everyone know...
                 self.emit(SIGNAL('updated_event'), event)
+
 
 
