@@ -30,22 +30,10 @@ Required
 	- timer should be based off os observed speed not requested speed
 
 - Status window.
-	Current time in frames or a float, basic playing controls. Indicator of
-	the current speed.
-	
-	The time will be free running, and every couple seconds sync up with the
-	mplayer time.
-	
-	Red light if I know that the timer is out of sync.
 	
 	Typing numbers should set the current time.
 		you keep typing which adds digits to the input buffer, interpreting it
 		as the current time mode, and setting it when you are done
-		
-
-- Info window.
-	Has a number of sections that (would be nice) are collapsable. Just key
-	value pairs under that.
 
 - Data structure:
 	- A document object has a filename

@@ -84,7 +84,7 @@ class Application(QObject):
     def mp(self):
         """Always a good (ie. running) mplayer."""
         if self._mp is None or not self._mp.is_running:
-            self._mp = MPlayer(self.doc.src)
+            self._mp = MPlayer(self.doc.video_src)
         return self._mp
     
     def format_time(self, time=None):
@@ -230,7 +230,7 @@ class Application(QObject):
         self.emit(SIGNAL('pause_toggled'))
     
     @property
-    def event_combine_mode(self):
+    def event_redo_mode(self):
         return COMBINE_MODE_REPLACE if Qt.Key_CapsLock in self.pressed_keys else COMBINE_MODE_ADD
         
     def keyPressEvent(self, event):
@@ -238,8 +238,6 @@ class Application(QObject):
         
         # Track the key press.
         self.pressed_keys.add(key)
-        
-        print self.event_combine_mode
         
         if key == Qt.Key_Space:
             self.toggle_pause()
@@ -273,7 +271,7 @@ class Application(QObject):
         # button is held down. This effectively makes the keys sticky. One can
         # cancel it by hitting it normally.
         if not (key in self.key_to_track and Qt.Key_Shift in self.pressed_keys):
-            self.pressed_keys.remove(key)
+            print self.pressed_keys
             
             if key in self.key_to_open_event:
                 event = self.key_to_open_event.pop(key)

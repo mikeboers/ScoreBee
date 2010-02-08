@@ -73,7 +73,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.tracks = []
         
         # At zoom level 0, 1 frame will take up 1 pixel.
-        self.zoom_level = 0
+        self.zoom_level = 1
         
         self.build_base_gui()
         
@@ -87,6 +87,10 @@ class TimelineWindow(QtGui.QMainWindow):
         connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_event)
         connect(self.app, SIGNAL('new_event'), self.handle_new_event_signal)
         connect(self.app, SIGNAL('updated_event'), self.handle_updated_event_signal)
+    
+    @property
+    def zoom_factor(self):
+        return Fraction(2, 1) ** self.zoom_level
     
     def apply_zoom(self, value):
         """Apply the current zoom level to some data."""
@@ -275,36 +279,58 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def ruler_paintEvent(self, event):
         
+        font = QFont()
+        font.setFamily("Courier New")
+        font.setPointSize(10)
+        
+        label_width = QFontMetrics(font).width('00:00:00')
+        size_needed = label_width + 10
+        
+        # Pick an appropriate spacing.
+        fps = self.app.mp.fps
+        frame_sizes = (1, 2) + tuple(fps / x for x in (2, 4, 5, 8, 10)) + tuple(fps * x for x in (1, 2, 4, 5, 10, 15, 20, 30, 60, 5 * 60, 10 * 60))
+        frame_sizes = sorted(set(frame_sizes))
+        frame_sizes = (int(x) for x in frame_sizes if int(x) == x)
+        zoom_sizes = ((x, int(self.apply_zoom(x))) for x in frame_sizes)
+        for step, size in zoom_sizes:
+            if size > size_needed:
+                break
+        
+        # Figure out how many sub ticks to make.
+        ticks = 1
+        while ticks < 4 and not step % (2 ** ticks):
+            ticks += 1
+        
         # TODO: This does not use the zoom.
         FPS = int(self.app.mp.fps)
-        STEP = FPS
         x = event.rect().x()
         w = event.rect().width()
         
-        min_t = x / STEP / 2 * 2 - 2
-        min_x = min_t * STEP
-        
-        steps = w / STEP + 6
+        min_f = int(self.unapply_zoom(x))
+        min_f = min_f / step * step
+        max_f = int(self.unapply_zoom(x + w)) + 10
         
         p = QtGui.QPainter(self.ruler)
-        
         try:
             p.setRenderHint(QtGui.QPainter.Antialiasing)
             
-            font = QFont()
-            font.setFamily("Courier New")
-            font.setPointSize(10)
             p.setFont(font)
             
-            for i in xrange(steps):
-                x = min_x + STEP * i
-                if i % 2:
-                    p.drawLine(x, RULER_HEIGHT - 6, x, RULER_HEIGHT)
-                else:    
+            for f in xrange(min_f, max_f, step / ticks):
+                tick = (f % step) / (step / ticks)
+                x = int(self.apply_zoom(f))
+                
+                if tick == 0:
                     p.drawLine(x, 4, x, RULER_HEIGHT)
                     p.setPen(QColor(0))
-                    txt = self.app.format_time(min_t + i)
+                    txt = self.app.format_time(frame_to_time(f, fps))
                     p.drawText(QPoint(x + 2, 10), txt)
+                    
+                elif ticks == 2 or ticks == 4 and tick == 2:    
+                    p.drawLine(x, RULER_HEIGHT - 8, x, RULER_HEIGHT)
+                    
+                else:
+                    p.drawLine(x, RULER_HEIGHT - 4, x, RULER_HEIGHT)
         finally:
             p.end
     
@@ -339,10 +365,8 @@ class TimelineWindow(QtGui.QMainWindow):
     
         
     def playhead_layout(self):
-        if self.app.doc is not None:
-            frame = int(self.app.time * self.app.mp.fps)
-            
-            x = self.frame_to_x(frame)
+        if self.app.doc is not None:            
+            x = self.time_to_x(self.app.time)
             
             self.playhead_container.setGeometry(
                 self.header_width,

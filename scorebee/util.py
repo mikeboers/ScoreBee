@@ -25,4 +25,4 @@ def time_to_frame(time, fps):
     return int(0.5 + time * fps)
 
 def frame_to_time(frame, fps):
-    return float(frame) * float(fps)
+    return float(frame) / float(fps)

@@ -68,8 +68,8 @@ class Track(QObject):
 
 class Document(QObject):
     
-    def __init__(self, src, tracks=None):
-        self.src = src
+    def __init__(self, video_src, tracks=None):
+        self.video_src = video_src
         self._tracks = tracks or []
     
     def __iter__(self):
