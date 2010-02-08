@@ -18,7 +18,7 @@ from . import config as cfg
 log = logging.getLogger(__name__)
 
 
-WINDOW_NAMES = 'status', 'info', 'timeline'
+WINDOW_NAMES = 'timeline', 'status', 'info'
 
 
 COMBINE_MODE_REPLACE = 'replace'
@@ -68,6 +68,42 @@ class Application(QObject):
     def setup_menu(self):
         menubar = self.timeline.menuBar()
         
+        file_menu = menubar.addMenu("File")
+        
+        new = QAction("New", self.timeline)
+        new.setShortcut('Ctrl+N')
+        connect(new, SIGNAL('triggered()'), self.handle_file_new)
+        file_menu.addAction(new)
+        
+        open_ = QAction("Open...", self.timeline)
+        open_.setShortcut('Ctrl+O')
+        connect(open_, SIGNAL('triggered()'), self.handle_file_open)
+        file_menu.addAction(open_)
+        
+        file_menu.addSeparator()
+        
+        save = QAction("Save", self.timeline)
+        save.setShortcut('Ctrl+S')
+        connect(save, SIGNAL('triggered()'), self.handle_file_save)
+        file_menu.addAction(save)
+        
+        save_as = QAction("Save As...", self.timeline)
+        save_as.setShortcut('Ctrl+Shift+S')
+        connect(save_as, SIGNAL('triggered()'), self.handle_file_save_as)
+        file_menu.addAction(save_as)
+        
+        quit = QAction("Quit", self.timeline)
+        quit.setShortcut('Ctrl+Q')
+        connect(quit, SIGNAL('triggered()'), self.handle_file_quit)
+        file_menu.addAction(quit)
+        
+        edit_menu = menubar.addMenu("Edit")
+        
+        undo = QAction("Undo", self.timeline)
+        undo.setShortcut("Ctrl+Z")
+        connect(undo, SIGNAL('triggered()'), self.handle_edit_undo)
+        edit_menu.addAction(undo)
+        
         view_menu = menubar.addMenu("View")
         
         zoom_in = QAction("Zoom In", self.timeline)
@@ -85,14 +121,70 @@ class Application(QObject):
             def handler():
                 window = getattr(self, name)
                 window.show()
-                window.repaint()
+                if name == 'timeline':
+                    window.layout()
+                else:
+                    window.repaint()
                 window.raise_()
             return handler
-        for name in WINDOW_NAMES:
+        for i, name in enumerate(WINDOW_NAMES):
             action = QtGui.QAction(name.capitalize(), self.timeline)
+            action.setShortcut('Ctrl+%d' % (i + 1))
             connect(action, SIGNAL('triggered()'), make_handler(name))
             window_menu.addAction(action)
-            
+
+    def ask_to_save_if_required(self):
+        if self.doc:
+            dialog = QMessageBox()
+            dialog.setText("The document (has) have been modified.");
+            dialog.setInformativeText("Do you want to save your changes?");
+            dialog.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel);
+            dialog.setDefaultButton(QMessageBox.Save);
+            res = dialog.exec_()
+            if res == QMessageBox.Cancel:
+                raise ValueError('cancel')
+            return res == QMessageBox.Save
+    
+    def handle_file_new(self):
+        log.debug('File > New')
+        try:
+            if self.ask_to_save_if_required():
+                self.save()
+        except ValueError:
+            pass
+    
+    def handle_file_open(self):
+        log.debug('File > Open')
+        try:
+            if self.ask_to_save_if_required():
+                self.save()
+        except ValueError:
+            pass
+    
+    def handle_file_save(self):
+        log.debug('File > Save')
+        self.save()
+    
+    def handle_file_save_as(self):
+        log.debug('File > Save As')
+        self.save(save_as=True)
+    
+    def handle_file_quit(self):
+        log.debug('File > Quit')
+        try:
+            if self.ask_to_save_if_required():
+                self.save()
+            self.app.quit()
+        except ValueError:
+            pass
+        
+    def handle_edit_undo(self):
+        log.debug('Edit > Undo')
+        pass    
+    
+    def save(self, save_as=True):
+        print 'save', save_as
+    
     @property
     def mp(self):
         """Always a good (ie. running) mplayer."""
