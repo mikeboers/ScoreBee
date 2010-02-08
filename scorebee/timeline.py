@@ -59,9 +59,7 @@ class TrackUI(QWidget):
         else:
             dh = dw = 0
         
-        track_i = self.timeline.tracks.index(self.track)
-        
-        self.setGeometry(0, track_i * TRACK_HEIGHT, w, TRACK_HEIGHT)
+        self.resize(w, TRACK_HEIGHT)
         self.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
         self.data_container.setGeometry(hw, 0, tw, TRACK_HEIGHT)
         self.data.setGeometry(-h_offset, 0, dw, TRACK_HEIGHT)
@@ -282,9 +280,10 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Track headers and data
         if self.app.doc is not None:
-            for track in self.app.doc:
+            for i, track in enumerate(self.app.doc):
                 if track.ui is None:
                     self.handle_track_created_signal(track)
+                track.ui.move(0, i * TRACK_HEIGHT)
                 track.ui.layout()
         
         self.playhead_layout()
@@ -312,6 +311,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.playhead_layout()
         
     def handle_time_mode_change_event(self):
+        self.time.setText(self.app.format_time())
         self.ruler.repaint()
     
     def ruler_paintEvent(self, event):
@@ -335,8 +335,8 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Figure out how many sub ticks to make.
         ticks = 1
-        while ticks < 4 and not step % (2 ** ticks):
-            ticks += 1
+        while ticks < 4 and not step % ticks:
+            ticks *= 2
         
         # TODO: This does not use the zoom.
         FPS = int(self.app.video.fps)
