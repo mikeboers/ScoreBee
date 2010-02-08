@@ -42,27 +42,14 @@ class TrackUI(QWidget):
     
     def layout(self):
         
-        # THIS IS REALLY GROSS!!!
-        # Some convenient sizes.
-        w = self.timeline.size().width()
-        h = self.timeline.size().height()
-        hw = self.timeline.header_width # Header width
-        tw = w - hw - SCROLLBAR_WIDTH # Track width
-        th = h - RULER_HEIGHT - SCROLLBAR_WIDTH
+        width = self.timeline.size().width()
+        header_width = self.timeline.header_width
         h_offset = self.timeline.h_scrollbar.value()
-        v_offset = self.timeline.v_scrollbar.value()
         
-        # Data height/width.
-        if self.timeline.app.doc is not None:
-            dh = TRACK_HEIGHT * len(self.timeline.app.doc)
-            dw = self.timeline.apply_zoom(self.timeline.app.video.frame_count)
-        else:
-            dh = dw = 0
-        
-        self.resize(w, TRACK_HEIGHT)
-        self.header.setGeometry(0, 0, hw, TRACK_HEIGHT)
-        self.data_container.setGeometry(hw, 0, tw, TRACK_HEIGHT)
-        self.data.setGeometry(-h_offset, 0, dw, TRACK_HEIGHT)
+        self.resize(width, TRACK_HEIGHT)
+        self.header.setGeometry(0, 0, header_width, TRACK_HEIGHT)
+        self.data_container.setGeometry(header_width, 0, width, TRACK_HEIGHT)
+        self.data.setGeometry(-h_offset, 0, width + h_offset, TRACK_HEIGHT)
         
         for event in self.track:
             if event.ui is None:
