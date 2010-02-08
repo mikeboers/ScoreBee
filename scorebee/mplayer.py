@@ -19,6 +19,8 @@ class MPlayerEOF(ValueError):
 class MPlayerDied(ValueError):
     pass
 
+class MPlayerBadFile(ValueError):
+    pass
 
 
 class MPlayer(object):
@@ -46,7 +48,10 @@ class MPlayer(object):
         if not autoplay:
             self.pause()
             self.time = 0
+            
         self._read(timeout=0.1)
+        if self.data == dict(exit='EOF'):
+            raise MPlayerBadFile(path)
     
     def _init_data(self):
         
@@ -208,4 +213,4 @@ class MPlayer(object):
 
 
 if __name__ == '__main__':
-    mp = MPlayer('/Users/mikeboers/Desktop/example.MOV')
+    mp = MPlayer('/Users/mikeboers/Desktop/drives.txt')

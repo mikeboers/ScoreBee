@@ -11,3 +11,7 @@ Use loadfile to load a file. needs an absolute path
 .get_property(name, timeout=0.1)
 
 store all the ID_s and properties and such
+
+
+it is a bad file if you get the exit=eof at the start, and it is the only thing
+in the data

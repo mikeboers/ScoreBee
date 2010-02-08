@@ -35,7 +35,7 @@ class Application(QObject):
         
         # The document is accessed through a property because we need to
         # signal rebuilding the api whenever it is changed.
-        self._doc = None
+        self._doc = None #Document()
         self._video = None
         
         # Build up the three windows.
@@ -253,15 +253,16 @@ class Application(QObject):
         
         self._doc = doc
         self._video = None # Forces a new mplayer with the new video.
-        if doc.is_ready:
-            self.video.time = 0
         
         self.key_to_track = dict((track.key_code, track) for track in doc)
-        self.emit(SIGNAL('doc_changed'))
         
-        # We need the interface to be updated. This is the likely the best way
-        # That I know.
-        self.sync()
+        if doc.is_ready:
+            self.video.time = 0
+            self.sync()
+        
+        # Force it to deal with the new document.
+        # XXX: HACK.
+        self.timeline.layout()
     
     def run(self):
         
@@ -368,6 +369,7 @@ class Application(QObject):
         self.emit(SIGNAL('pause_toggled'))
     
     def delete_event(self, track, event):
+        # XXX: This is really gross... clean this up.
         event_i = track._events.index(event)
         assert event_i >= 0
         event.ui.destroy()
