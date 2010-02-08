@@ -8,6 +8,9 @@ from .ui.status_window import Ui_status_window as UI
 log = logging.getLogger(__name__)
 
 
+BUTTON_NAMES = 'play step fast_forward rewind go_to_start'.split()
+
+
 class StatusWindow(QtGui.QDialog):
 
     def __init__(self, app, *args):
@@ -20,9 +23,10 @@ class StatusWindow(QtGui.QDialog):
         self.ui.time.mousePressEvent = self.time_mousePress
         
         # Connect all the buttons.
-        for name in 'play step fast_forward rewind go_to_start'.split():
+        for name in BUTTON_NAMES:
             connect(getattr(self.ui, name), SIGNAL('clicked()'), getattr(self, '%s_button' % name))
         
+        connect(self.app, SIGNAL('doc_changed'), self.handle_doc_changed_signal)
         connect(self.app, SIGNAL('time_changed'), self.handle_time_change_signal)
         connect(self.app, SIGNAL('time_mode_changed'), self.handle_time_change_signal)
         connect(self.app, SIGNAL('synced'), self.handle_synced_signal)
@@ -32,9 +36,11 @@ class StatusWindow(QtGui.QDialog):
         
         connect(self.app, SIGNAL('pause_toggled'), self.handle_pause_toggled_signal)
     
-    @property
-    def mp(self):
-        return self.app.video
+    def handle_doc_changed_signal(self):
+        ready = self.app.is_ready
+        for name in BUTTON_NAMES:
+            button = getattr(self.ui, name)
+            button.setEnabled(ready)
     
     def play_button(self):
         log.debug('play/pause')

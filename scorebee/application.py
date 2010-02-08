@@ -90,6 +90,13 @@ class Application(QObject):
         
         file_menu.addSeparator()
         
+        import_video = QAction("Import Video...", self.timeline)
+        import_video.setShortcut('Ctrl+I')
+        connect(import_video, SIGNAL('triggered()'), self.handle_file_import_video)
+        file_menu.addAction(import_video)
+        
+        file_menu.addSeparator()
+        
         save = QAction("Save", self.timeline)
         save.setShortcut('Ctrl+S')
         connect(save, SIGNAL('triggered()'), self.handle_file_save)
@@ -182,6 +189,10 @@ class Application(QObject):
             self.doc = doc
         except ValueError:
             pass
+    
+    def handle_file_import_video(self):
+        self.doc.video_path = '/Users/mikeboers/Desktop/example.MOV'
+        self.emit(SIGNAL('doc_changed'))
     
     def handle_file_save(self):
         log.debug('File > Save')
@@ -338,7 +349,7 @@ class Application(QObject):
 
         """
         
-        if not self.doc:
+        if not self.is_ready:
             return
         
         now = time.time()
