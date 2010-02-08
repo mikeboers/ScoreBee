@@ -16,9 +16,13 @@ record the creation_date of events
 		<time>: created
 		<time>: extended
 
-warning leaving withou saving
-file saving/loading
-	cleanup all the tracks and event widgets
+
+new/open file:
+	clean up the tracks that already exist.
+
+open video:
+	need to be able to select a video
+	need to not have it explode until you select one
 
 get it into py2app with an icon in the dock
 
