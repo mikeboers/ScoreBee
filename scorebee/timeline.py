@@ -368,7 +368,7 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def mouseMoveEvent(self, event):
         x = event.pos().x()
-        if x > self.header_width:
+        if x > self.header_width and self.clicked_in_ruler:
             self.ruler_mouseMoveEvent(event)
     
     def mouseReleaseEvent(self, event):        
