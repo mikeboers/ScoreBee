@@ -59,9 +59,10 @@ class TrackUI(QWidget):
 
 class EventUI(QWidget):
     
-    def __init__(self, timeline, event, parent):
+    def __init__(self, timeline, track, event, parent):
         QWidget.__init__(self, parent)
         self.timeline = timeline
+        self.track = track
         self.event = event
         
         self.pen_color = QColor(*tuple(random.randrange(128) for x in range(3)))
@@ -100,7 +101,8 @@ class EventUI(QWidget):
             p.end()
     
     def mousePressEvent(self, event):
-        print self, self.event, event
+        if int(event.modifiers()) & Qt.AltModifier:
+            self.timeline.app.delete_event(self.track, self.event)
         
 
 
@@ -279,7 +281,7 @@ class TimelineWindow(QtGui.QMainWindow):
         self.playhead_layout()
     
     def handle_event_created_signal(self, track, event):
-        event.ui = EventUI(self, event, track.ui.data)
+        event.ui = EventUI(self, track, event, track.ui.data)
         event.ui.layout()
         event.ui.show()
     
@@ -388,34 +390,33 @@ class TimelineWindow(QtGui.QMainWindow):
         self._pos = event.globalPos()
         self._event = event
         
-        if event.type() != 2:
-            if self._mouse_reciever is not None:
+        if event.type() == 2:
+            try:
+                self.pass_if_hits(self.ruler)
+                for track in self.app.doc:
+                    if self.test_hit(track.ui.data):
+                        for event in track:
+                            self.pass_if_hits(event.ui)
+                        break
+
+            except ValueError as e:
+                if e.args[0] != 'good':
+                    raise
+        
+        elif self._mouse_reciever is not None:
+            try:
                 self.pass_event(self._mouse_reciever)
+            except RuntimeError as e:
+                if e.args[0] == 'underlying C/C++ object has been deleted':
+                    self._mouse_reciever = None
+                else:
+                    raise
             return
-        
-        try:
-            self.pass_if_hits(self.ruler)
-            for track in self.app.doc:
-                if self.test_hit(track.ui.data):
-                    for event in track:
-                        self.pass_if_hits(event.ui)
-                    break
-        
-        except ValueError as e:
-            if e.args[0] != 'good':
-                raise
         
         if self._event.type() == 3:
             self._mouse_reciever = None
         return
         
-        self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
-        
-        if self.clicked_in_ruler:
-            self.was_playing = not self.app.video.is_paused
-            if self.was_playing:
-                self.app.video.pause()
-            self.ruler_mouseMoveEvent(event)
     
     mousePressEvent   = mouse_event_handler
     mouseMoveEvent    = mouse_event_handler

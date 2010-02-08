@@ -367,9 +367,12 @@ class Application(QObject):
             self.video.pause()
         self.emit(SIGNAL('pause_toggled'))
     
-    @property
-    def event_redo_mode(self):
-        return COMBINE_MODE_REPLACE if Qt.Key_CapsLock in self.pressed_keys else COMBINE_MODE_ADD
+    def delete_event(self, track, event):
+        event_i = track._events.index(event)
+        assert event_i >= 0
+        event.ui.destroy()
+        event.ui.deleteLater()
+        track._events.pop(event_i)
         
     def keyPressEvent(self, event):
         key = event.key()
