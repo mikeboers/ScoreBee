@@ -98,6 +98,9 @@ class EventUI(QWidget):
         
         finally:
             p.end()
+    
+    def mousePressEvent(self, event):
+        print self, self.event, event
         
 
 
@@ -357,9 +360,12 @@ class TimelineWindow(QtGui.QMainWindow):
         finally:
             p.end
     
-        
+    
+    def test_hit(self, obj):
+        return obj.rect().contains(obj.mapFromGlobal(self._pos))
+    
     def pass_if_hits(self, obj):
-        if obj.rect().contains(obj.mapFromGlobal(self._pos)):
+        if self.test_hit(obj):
             if self._event.type() == 2:
                 self._mouse_reciever = obj
             self.pass_event(obj)
@@ -369,15 +375,16 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def pass_event(self, obj):
         event = self._event       
-        event = QMouseEvent(event.type(), obj.mapFromGlobal(event.globalPos()), event.button(), event.buttons(), Qt.KeyboardModifiers(0))
+        event = QMouseEvent(event.type(), obj.mapFromGlobal(event.globalPos()), event.button(), event.buttons(), event.modifiers())
         getattr(obj, {
             2: 'mousePressEvent',
+            4: 'mouseDoubleClickEvent',
             5: 'mouseMoveEvent',
             3: 'mouseReleaseEvent',
         }[event.type()])(event)
     
     def mouse_event_handler(self, event):
-        
+                
         self._pos = event.globalPos()
         self._event = event
         
@@ -388,11 +395,17 @@ class TimelineWindow(QtGui.QMainWindow):
         
         try:
             self.pass_if_hits(self.ruler)
+            for track in self.app.doc:
+                if self.test_hit(track.ui.data):
+                    for event in track:
+                        self.pass_if_hits(event.ui)
+                    break
+        
         except ValueError as e:
             if e.args[0] != 'good':
                 raise
         
-        if event.type() == 3:
+        if self._event.type() == 3:
             self._mouse_reciever = None
         return
         
