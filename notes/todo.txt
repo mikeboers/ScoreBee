@@ -5,6 +5,10 @@ General
 - make sure to keep everything very MVC.
 - only do what is absolutely nessesary
 
+- add a folder of templates that tanya can open from
+	they are just documents to open
+
+- unsaved changes warning should be a sheet, and should be accurate
 
 The app needs to be stable when there is no tracks and no video specified:
 	- There should never NOT be a document. It can be a empty one, but there

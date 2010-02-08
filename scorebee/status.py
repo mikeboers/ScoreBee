@@ -34,14 +34,14 @@ class StatusWindow(QtGui.QDialog):
     
     @property
     def mp(self):
-        return self.app.mp
+        return self.app.video
     
     def play_button(self):
         log.debug('play/pause')
         self.app.toggle_pause()
     
     def handle_pause_toggled_signal(self):
-        if self.app.mp.is_paused:
+        if self.app.video.is_paused:
             self.ui.play.setIcon(self.play_icon)
         else:
             self.ui.play.setIcon(self.pause_icon)
@@ -49,7 +49,7 @@ class StatusWindow(QtGui.QDialog):
     
     def step_button(self):
         log.debug('step')
-        self.app.mp.step()
+        self.app.video.step()
         self.app.sync()
         
     def fast_forward_button(self):
@@ -74,16 +74,16 @@ class StatusWindow(QtGui.QDialog):
     
     def go_to_start_button(self):
         log.debug('go_to_start')
-        self.mp.time = 0
+        self.app.video.time = 0
         self.app.time = 0
     
     @property
     def speed(self):
-        return self.mp.speed
+        return self.app.video.speed
     
     @speed.setter
     def speed(self, value):
-        self.mp.speed = value
+        self.app.video.speed = value
         self.ui.speed.setText('speed: %sx' % self.speed)
     
     def handle_time_change_signal(self):

@@ -114,10 +114,10 @@ class TimelineWindow(QtGui.QMainWindow):
         return int(self.unapply_zoom(float(x) + self.h_scrollbar.value()))
     
     def time_to_x(self, time):
-        return self.frame_to_x(time * self.app.mp.fps)
+        return self.frame_to_x(time * self.app.video.fps)
     
     def x_to_time(self, x):
-        return self.x_to_frame(x) / self.app.mp.fps
+        return self.x_to_frame(x) / self.app.video.fps
     
     def build_base_gui(self):
           
@@ -229,7 +229,7 @@ class TimelineWindow(QtGui.QMainWindow):
         # Data height/width.
         if self.app.doc:
             dh = TRACK_HEIGHT * len(self.app.doc)
-            dw = self.apply_zoom(self.app.mp.frame_count)
+            dw = self.apply_zoom(self.app.video.frame_count)
         else:
             dh = dw = 0
     
@@ -299,7 +299,7 @@ class TimelineWindow(QtGui.QMainWindow):
         size_needed = label_width + 10
         
         # Pick an appropriate spacing.
-        fps = self.app.mp.fps
+        fps = self.app.video.fps
         frame_sizes = (1, 2) + tuple(fps / x for x in (2, 4, 5, 8, 10)) + tuple(fps * x for x in (1, 2, 4, 5, 10, 15, 20, 30, 60, 5 * 60, 10 * 60))
         frame_sizes = sorted(set(frame_sizes))
         frame_sizes = (int(x) for x in frame_sizes if int(x) == x)
@@ -314,7 +314,7 @@ class TimelineWindow(QtGui.QMainWindow):
             ticks += 1
         
         # TODO: This does not use the zoom.
-        FPS = int(self.app.mp.fps)
+        FPS = int(self.app.video.fps)
         x = event.rect().x()
         w = event.rect().width()
         
@@ -354,9 +354,9 @@ class TimelineWindow(QtGui.QMainWindow):
         self.clicked_in_ruler = x > self.header_width and y < RULER_HEIGHT
         
         if self.clicked_in_ruler:
-            self.was_playing = not self.app.mp.is_paused
+            self.was_playing = not self.app.video.is_paused
             if self.was_playing:
-                self.app.mp.pause()
+                self.app.video.pause()
             self.ruler_mouseMoveEvent(event)
     
     def mouseMoveEvent(self, event):
@@ -366,14 +366,14 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def mouseReleaseEvent(self, event):        
         if self.clicked_in_ruler and self.was_playing:
-            self.app.mp.play()
+            self.app.video.play()
     
     def ruler_mouseMoveEvent(self, event):
         # We only need to suptrack the header width cause this is not directly
         # recieving the mouse event.
         t = self.x_to_time(event.pos().x() - self.header_width)
-        if t < self.app.mp.length:
-            self.app.time = self.app.mp.time = t
+        if t < self.app.video.length:
+            self.app.time = self.app.video.time = t
             self.app.sync() # HUGE HACK!
     
         

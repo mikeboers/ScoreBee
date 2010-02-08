@@ -36,7 +36,7 @@ class Application(QObject):
         # The document is accessed through a property because we need to
         # signal rebuilding the api whenever it is changed.
         self._doc = None
-        self._mp = None
+        self._video = None
         
         # Build up the three windows.
         self.timeline = TimelineWindow(self)
@@ -53,8 +53,8 @@ class Application(QObject):
         self.last_loop_time = 0
         
         self.time = 0 # Our guess for the current time.
-        self.mp_sync_time = 0 # Last time we synced to mplayer's time.
-        self.mp_time_at_sync = 0 # What the time was when we synced.
+        self.video_sync_time = 0 # Last time we synced to mplayer's time.
+        self.video_time_at_sync = 0 # What the time was when we synced.
         
         # The global time representation mode. Rotate this by calling
         # self.next_time_mode()
@@ -221,19 +221,19 @@ class Application(QObject):
     
     
     @property
-    def mp(self):
+    def video(self):
         """Always a good (ie. running) mplayer."""
-        if self._mp is None or not self._mp.is_running:
+        if self._video is None or not self._video.is_running:
             if self.doc.is_ready:
-                self._mp = MPlayer(
+                self._video = MPlayer(
                     path=self.doc.video_path,
                     conf=os.path.abspath(__file__ + '/../../settings/mplayer.txt')
                 )
-        return self._mp
+        return self._video
     
     def format_time(self, time=None):
         """Format a time with the current time format mode."""
-        return format_time(self.time if time is None else time, self.mp.fps, self.time_mode)
+        return format_time(self.time if time is None else time, self.video.fps, self.time_mode)
     
     def next_time_mode(self):
         """Rotate the time format mode."""
@@ -251,9 +251,9 @@ class Application(QObject):
     def doc(self, doc):
         
         self._doc = doc
-        self._mp = None # Forces a new mplayer with the new video.
+        self._video = None # Forces a new mplayer with the new video.
         if doc.is_ready:
-            self.mp.time = 0
+            self.video.time = 0
         
         self.key_to_track = dict((track.key_code, track) for track in doc)
         self.emit(SIGNAL('doc_changed'))
@@ -304,7 +304,7 @@ class Application(QObject):
     
     @property
     def frame(self):
-        return int(self.time * self.mp.fps)
+        return int(self.time * self.video.fps)
     
     def main_loop(self, event=None, force_sync=False):
         """Event that is triggered every couple milliseconds.
@@ -317,13 +317,13 @@ class Application(QObject):
             return
         
         now = time.time()
-        time_delta = now - self.mp_sync_time
+        time_delta = now - self.video_sync_time
 
-        if force_sync or now - self.mp_sync_time > cfg.SYNC_INTERVAL:
+        if force_sync or now - self.video_sync_time > cfg.SYNC_INTERVAL:
             self.sync()
 
-        elif not self.mp.is_paused:
-            self.time = self.mp_time_at_sync + self.mp.speed * time_delta
+        elif not self.video.is_paused:
+            self.time = self.video_time_at_sync + self.video.speed * time_delta
             self.emit(SIGNAL('time_changed'))
             
         for event in self.key_to_open_event.values():
@@ -340,16 +340,16 @@ class Application(QObject):
         
         start_time = time.time()
         
-        if start_time - self.mp_sync_time < threshold:
+        if start_time - self.video_sync_time < threshold:
             if verbose:
                 log.debug('sync under threshold')
             return
             
-        new_time = self.mp.time
+        new_time = self.video.time
         delta = new_time - self.time
         
-        self.mp_time_at_sync = self.time = new_time
-        self.mp_sync_time    = start_time
+        self.video_time_at_sync = self.time = new_time
+        self.video_sync_time    = start_time
 
         if delta:
             self.emit(SIGNAL('time_changed'), delta)
@@ -359,10 +359,10 @@ class Application(QObject):
             log.debug('synced in %.2fms' % (1000 * (time.time() - start_time)))
     
     def toggle_pause(self):
-        if self.mp.is_paused:
-            self.mp.play()
+        if self.video.is_paused:
+            self.video.play()
         else:
-            self.mp.pause()
+            self.video.pause()
         self.emit(SIGNAL('pause_toggled'))
     
     @property
