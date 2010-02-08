@@ -30,7 +30,7 @@ class TrackUI(QWidget):
         self.data = QWidget(self.data_container)
         
         self.header = QLineEdit(self)
-        self.header.setText('%s (%s)' % (track.name, track.key.upper()))
+        self.header.setText('%s %s<%s>' % (track.name, '(%s) ' % track.group if track.group else '', track.key.upper()))
         self.header.setAlignment(Qt.AlignRight)
         self.header.setReadOnly(True)
         self.header.setFrame(False)
@@ -71,7 +71,6 @@ class EventUI(QWidget):
         x = self.timeline.apply_zoom(self.event.start)
         width = self.timeline.apply_zoom(self.event.length)
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
-        print self.rect()
     
     
     def paintEvent(self, event):
@@ -174,9 +173,9 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Initial constants for the header. These should be updated depending
         # on the data that gets preresented (ie. the width of the text).
-        self.header_width = 200
+        self.header_width = 250
         self.header_min_width = 100
-        self.header_max_width = 300
+        self.header_max_width = 400
     
         self.track_container = QWidget(self)
         self.track_container.setStyleSheet('background-color:rgb(255, 255, 200)')

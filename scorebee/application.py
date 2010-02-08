@@ -62,8 +62,16 @@ class Application(QObject):
         
         # Some state to keep track of which keys are pressed.
         self.pressed_keys = set()
+        
+        # A mapping of keys to tracks. Only changed when a new doc is loaded
+        # or new tracks are added.
         self.key_to_track = {}
+        
+        # A mapping of keys to events that are in progress.
         self.key_to_open_event = {}
+        
+        # A mapping of group names to events that are in progress.
+        self.group_to_open_event = {}
     
     def setup_menu(self):
         menubar = self.timeline.menuBar()
@@ -378,10 +386,13 @@ class Application(QObject):
         
     def keyPressEvent(self, event):
         key = event.key()
-        # log.debug('keyPressEvent %d' % key)
         
         # Track the key press.
+        if key in self.pressed_keys:
+            return
         self.pressed_keys.add(key)
+        
+        log.debug('keyPressEvent %d' % key)
         
         if key == Qt.Key_Space:
             self.toggle_pause()
@@ -404,13 +415,37 @@ class Application(QObject):
             frame = self.frame
             event = Event(frame, frame)
             track.add_event(event)
-            self.key_to_open_event[key] = event
-            self.emit(SIGNAL('event_created'), track, event)
             
-
+            self.key_to_open_event[key] = event
+            if track.group:
+                if track.group in self.group_to_open_event:
+                    open_event =  self.group_to_open_event[track.group]
+                    self.close_event(open_event)
+                    for k, v in self.key_to_open_event.items():
+                        if v == open_event:
+                            del self.key_to_open_event[k]
+                            self.pressed_keys.discard(k)
+                
+                self.group_to_open_event[track.group] = event
+            
+            self.emit(SIGNAL('event_created'), track, event)
+        
+        print self.group_to_open_event, self.key_to_open_event
+            
+    def close_event(self, event):        
+        # Make sure we are getting an accurate time. See my note in
+        # the keyPressEvent for why this can be wrong.
+        self.sync(threshold=1.0/30, verbose=True)
+        event.end = self.frame
+    
+        # Let everyone know...
+        self.emit(SIGNAL('event_updated'), event)
+    
+    
     def keyReleaseEvent(self, event):
         key = event.key()
-        # log.debug('keyReleaseEvent %d' % key)
+        
+        log.debug('keyReleaseEvent %d' % key)
         
         # Ignore the release event if it is a track trigger, and the shift
         # button is held down. This effectively makes the keys sticky. One can
@@ -420,15 +455,16 @@ class Application(QObject):
             self.pressed_keys.discard(key)
             
             if key in self.key_to_open_event:
+                track = self.key_to_track[key]
                 event = self.key_to_open_event.pop(key)
-            
-                # Make sure we are getting an accurate time. See my note in
-                # the keyPressEvent for why this can be wrong.
-                self.sync(threshold=1.0/30, verbose=True)
-                event.end = self.frame
-            
-                # Let everyone know...
-                self.emit(SIGNAL('event_updated'), event)
+                
+                if track.group and self.group_to_open_event.get(track.group) == event:
+                    del self.group_to_open_event[track.group]
+                
+                self.close_event(event)
+        
+        print self.pressed_keys
+                
 
 
 
