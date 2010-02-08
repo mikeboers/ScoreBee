@@ -455,7 +455,8 @@ class Application(QObject):
         # log.debug('keyPressEvent %d' % key)
         
         if key == Qt.Key_Space:
-            self.toggle_pause()
+            if self.is_ready:
+                self.toggle_pause()
         
         # If this key is a trigger for a track and there isn't already an
         # open event (ie one in progress already), then make a new one.
