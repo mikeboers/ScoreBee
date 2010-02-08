@@ -14,6 +14,12 @@ timeline_window: scorebee/ui/timeline_window.py
 build: status_window info_window timeline_window
 	# BUILD
 
+app: build
+	python setup.py py2app --alias
+
+dist: build
+	python setup.py py2app
+
 run: build
 	# RUN
 	python -m scorebee.main

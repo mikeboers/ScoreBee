@@ -53,7 +53,9 @@ class TrackUI(QWidget):
         self.resize(width, TRACK_HEIGHT)
         self.header.setGeometry(0, 0, header_width, TRACK_HEIGHT)
         self.data_container.setGeometry(header_width, 0, width, TRACK_HEIGHT)
-        self.data.setGeometry(-h_offset, 0, width + h_offset, TRACK_HEIGHT)
+        # Need to use move for when the number becomes far too negative.
+        self.data.move(-h_offset, 0)
+        self.data.resize(width + h_offset, TRACK_HEIGHT)
         
         for event in self.track.events:
             if event.ui is None:
@@ -197,8 +199,7 @@ class TimelineWindow(QtGui.QMainWindow):
         font.setBold(True)
         self.time.setFont(font)
         
-        self.ruler_container = QWidget(self)
-        self.ruler = QWidget(self.ruler_container)
+        self.ruler = QWidget(self)
         self.ruler.paintEvent = self.ruler_paintEvent
         self.ruler.mousePressEvent = self.ruler_mousePressEvent
         self.ruler.mouseMoveEvent  = self.ruler_mouseMoveEvent
@@ -263,8 +264,11 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # Adjust the time display and the ruler container width.
         self.time.setGeometry(0, 0, header_width, RULER_HEIGHT)
-        self.ruler_container.setGeometry(header_width, 0, tracks_width, RULER_HEIGHT)
-        self.ruler.setGeometry(-h_offset, 0, data_width, RULER_HEIGHT) # This only need happen once.
+        self.ruler.setGeometry(header_width, 0, tracks_width, RULER_HEIGHT)
+        # Need to use move for when the value gets too big
+        # self.ruler.move(-h_offset, 0)
+        # self.ruler.resize(data_width, RULER_HEIGHT)
+        self.ruler.repaint()
         
         self.header_line.setGeometry(self.header_width - 2, -2, 4, height + 4)
         self.ruler_line .setGeometry(0, RULER_HEIGHT - 2, width, 4)
@@ -309,6 +313,7 @@ class TimelineWindow(QtGui.QMainWindow):
     def handle_time_change_event(self):
         self.time.setText(self.app.format_time())
         self.playhead_layout()
+        self.ruler.repaint()
         
     def handle_time_mode_change_event(self):
         self.time.setText(self.app.format_time())
@@ -340,12 +345,14 @@ class TimelineWindow(QtGui.QMainWindow):
         
         # TODO: This does not use the zoom.
         FPS = int(self.app.video.fps)
+        offset = self.h_scrollbar.value()
         x = event.rect().x()
         w = event.rect().width()
         
-        min_f = int(self.unapply_zoom(x))
+        min_f = int(self.unapply_zoom(x + offset))
         min_f = min_f / step * step
-        max_f = int(self.unapply_zoom(x + w)) + 10
+        max_f = int(self.unapply_zoom(x + offset + w)) + 10
+        
         
         p = QtGui.QPainter(self.ruler)
         try:
@@ -355,8 +362,7 @@ class TimelineWindow(QtGui.QMainWindow):
             
             for f in xrange(min_f, max_f, step / ticks):
                 tick = (f % step) / (step / ticks)
-                x = int(self.apply_zoom(f))
-                
+                x = int(self.apply_zoom(f)) - offset
                 if tick == 0:
                     p.drawLine(x, 4, x, RULER_HEIGHT)
                     p.setPen(QColor(0))
@@ -441,7 +447,7 @@ class TimelineWindow(QtGui.QMainWindow):
     
     def ruler_mouseMoveEvent(self, event):
         # print 'move'
-        f = self.unapply_zoom(event.pos().x())
+        f = self.unapply_zoom(event.pos().x() + self.h_scrollbar.value())
         t = frame_to_time(f, self.app.video.fps)
         t = max(0, t)
         if t < self.app.video.length:

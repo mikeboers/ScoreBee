@@ -14,9 +14,9 @@ if __name__ == '__main__':
     # We absolutely MUST have the document constructed fully BEFORE
     # setting it here. There are side effects to setting it.
     # HACK: This is just a hack for now.
-    doc = Document()
+    # doc = Document()
     # doc = Document('/Users/mikeboers/Desktop/example.MOV')
-    # self.doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
+    doc = Document('/Users/mikeboers/Desktop/C00000S00A20091231112932302.avi')
     doc.add_track(Track(
         name='A behaviour',
         key='q',

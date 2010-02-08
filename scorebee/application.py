@@ -490,8 +490,6 @@ class Application(QObject):
                 self.group_to_open_event[track.group] = event
             
             self.emit(SIGNAL('event_created'), track, event)
-        
-        print self.group_to_open_event, self.key_to_open_event
             
     def close_event(self, event):        
         # Make sure we are getting an accurate time. See my note in

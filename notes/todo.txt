@@ -2,6 +2,9 @@
 General
 =======
 
+- ruler gets fucked up past 6 minutes into a video
+	- so do events
+
 - make sure to keep everything very MVC.
 - only do what is absolutely nessesary
 
@@ -11,11 +14,10 @@ General
 - unsaved changes warning should be a sheet, and should be accurate
 
 
-
+- highlight track headers when creating new events or in an event
 
 need to check if the video file is valid when opening a file too.
 
-tracks should be displayed even if there is no video
 
 
 
@@ -30,16 +32,10 @@ record the creation_date of events
 		<time>: extended
 
 
-new/open file:
-	clean up the tracks that already exist.
 
-open video:
-	need to be able to select a video
-	need to not have it explode until you select one
 
 get it into py2app with an icon in the dock
 
-option click to delete events
 
 create new tracks
 
@@ -47,7 +43,7 @@ make a nicer file output format
 
 need to deal with referenced videos which no longer exist.
 
-timeline layout needs to have alternate mode for
+
 
 data:
 	when stuff occours
@@ -66,31 +62,18 @@ Required
 		you keep typing which adds digits to the input buffer, interpreting it
 		as the current time mode, and setting it when you are done
 
-- Data structure:
-	- A document object has a filename
-	- it has it's own mp object (which it always makes sure is not dead)
-	- Each track is it's own object.
-		name, key, data
-	- Each event on the track is it's own object.
-		start frame, end frame
-	- Events that are in progress are normal events, just the main controller
-	  knows that it has to keep updating them.
-	- Need to be able to quickly lookup the next event start time.
-	- merge two when they collide
-
 - Timeline
 	- Would be nice if I idn't have to write raw button code fot the lock/invisible.
 	- MAYBE have the lock/invisible in a menu instead of a button.
 	- selectable tracks with commands in  a menu for locking and hiding them, etc
-	- zoom commands on cmd-+ and cmd--
 	- UNDO/REDO!
 
 
 Would be nice
 =============
 
-- MPlayer property getting more robust with more error checking. .get_fps(...)
-	has explicit timeout, and throws and exception if it doesnt work.
+
+
 
 BUGS
 ====
