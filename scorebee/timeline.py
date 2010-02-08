@@ -180,8 +180,13 @@ class TimelineWindow(QtGui.QMainWindow):
         self.layout()
     
     def handle_doc_changed_event(self):
-        # TODO: detroy the old tracks
+        
+        # TODO: Delete them with deleteLater (or something)
+        for track in self.tracks:
+            track.ui.container.destroy()
+            
         self.tracks = list(self.app.doc)
+        
         for i, track in enumerate(self.tracks):
             
             track.ui = ui = UIData() # This is just a generic object.

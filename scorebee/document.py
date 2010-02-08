@@ -71,10 +71,14 @@ class Track(QObject):
 
 class Document(QObject):
     
-    def __init__(self, video_src, tracks=None):
+    def __init__(self, video_src=None, tracks=None):
         self.video_src = video_src
         self.path = None
         self._tracks = tracks or []
+    
+    @property
+    def is_ready(self):
+        return self.video_src is not None
     
     def __iter__(self):
         return iter(self._tracks)
