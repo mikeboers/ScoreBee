@@ -33,7 +33,7 @@ class TrackUI(QWidget):
         self.data = QWidget(self)
         
         self.header = QLabel(self)
-        self.header.setText('%s %s<%s>' % (track.name, '(%s) ' % track.group if track.group else '', track.key.upper()))
+        self.header.setText('%s %s[%s]' % (track.name, '(%s) ' % track.group if track.group else '', track.key.upper()))
         self.header.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.header.setMargin(8)
         font = QFont()
