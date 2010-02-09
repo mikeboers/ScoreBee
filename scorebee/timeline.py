@@ -74,6 +74,9 @@ class EventUI(QWidget):
     def layout(self):
         x = self.timeline.apply_zoom(self.event.start - self.timeline.h_scrollbar.value())
         width = self.timeline.apply_zoom(self.event.length)
+        
+        # This is causing some havoc. These things are being deleted while
+        # being open. When it tries to lay them out it throws a runtime error.
         self.setGeometry(x - 8, 0, width + 15, TRACK_HEIGHT)
     
     
