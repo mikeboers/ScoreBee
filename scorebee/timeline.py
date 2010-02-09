@@ -453,4 +453,7 @@ class TimelineWindow(QtGui.QMainWindow):
     def wheelEvent(self, event):
         if event.orientation() == Qt.Horizontal:
             self.h_scrollbar.setValue(self.h_scrollbar.value() - event.delta())
+        else:
+            self.v_scrollbar.setValue(self.v_scrollbar.value() - event.delta())
+            
   
