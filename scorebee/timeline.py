@@ -420,8 +420,11 @@ class TimelineWindow(QtGui.QMainWindow):
             self.playhead.hide()
         else:     
             x = self.time_to_position(self.app.time)
-            self.playhead.setGeometry(self.header_width + x - 8, 0, 8*2 + 1, self.size().height())
-            self.playhead.show()
+            if x < 0:
+                self.playhead.hide()
+            else:
+                self.playhead.setGeometry(self.header_width + x - 8, 0, 8*2 + 1, self.size().height())
+                self.playhead.show()
     
     def playhead_paintEvent(self, event):
         p = QtGui.QPainter(self.playhead)
@@ -439,4 +442,8 @@ class TimelineWindow(QtGui.QMainWindow):
             
         finally:
             p.end
+    
+    def wheelEvent(self, event):
+        if event.orientation() == Qt.Horizontal:
+            self.h_scrollbar.setValue(self.h_scrollbar.value() - event.delta())
   
