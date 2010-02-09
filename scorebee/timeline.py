@@ -139,33 +139,55 @@ class TimelineWindow(QtGui.QMainWindow):
         return Fraction(2, 1) ** self.zoom_level
     
     def zoom_in(self, event=None):
+        """Everything gets twice as big."""
         self.zoom_level = min(4, self.zoom_level - 1)
         self.layout()
     
     def zoom_out(self, event=None):
+        """Everything gets half as big."""
         self.zoom_level = max(-4, self.zoom_level + 1)
         self.layout()
         
     def apply_zoom(self, value):
-        """Apply the current zoom level to some data."""
+        """Get the a zoomed value.
+        
+        Converts a duration in frames to the number of pixels wide they must
+        be drawn.
+        
+        """
         return float(value * Fraction(2, 1) ** self.zoom_level)
     
     def unapply_zoom(self, value):
-        return float(value / Fraction(2, 1) ** self.zoom_level)
+        """Convert a zoomed value back to normal.
         
-    def frame_to_x(self, frame):
-        """Get the x-coord for a given frame."""
-        return int(self.apply_zoom(float(frame)) - self.h_scrollbar.value())
+        Converts a pixel width on the screen to the duration in frames it
+        represents.
+        
+        """
+        return float(value / Fraction(2, 1) ** self.zoom_level)
     
-    def x_to_frame(self, x):
-        """Get the frame number of a n x-coord"""
-        return int(self.unapply_zoom(float(x) + self.h_scrollbar.value()))
     
-    def time_to_x(self, time):
-        return self.frame_to_x(time * self.app.video.fps)
+    def frame_to_position(self, frame):
+        """Get the x-coord for a given frame.
+        
+        This returns the x coord relative to the track container.
+        
+        """
+        return int(self.apply_zoom(frame) - self.h_scrollbar.value())
     
-    def x_to_time(self, x):
-        return self.x_to_frame(x) / self.app.video.fps
+    def position_to_frame(self, x):
+        """Get the frame that is at a given x-coord.
+        
+        This takes the x coord relative to the track container.
+        
+        """
+        return int(self.unapply_zoom(x + self.h_scrollbar.value()))
+    
+    def time_to_position(self, time):
+        return self.frame_to_position(time * self.app.video.fps)
+    
+    def position_to_time(self, x):
+        return self.position_to_frame(x) / self.app.video.fps
     
     def build_base_gui(self):
           
@@ -460,7 +482,7 @@ class TimelineWindow(QtGui.QMainWindow):
             self.playhead.move(-1000, 0)
             
         else:     
-            x = self.time_to_x(self.app.time)
+            x = self.time_to_position(self.app.time)
             
             self.playhead_container.setGeometry(
                 self.header_width,
