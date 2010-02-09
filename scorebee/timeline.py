@@ -423,13 +423,15 @@ class TimelineWindow(QtGui.QMainWindow):
             if x < 0:
                 self.playhead.hide()
             else:
-                self.playhead.setGeometry(self.header_width + x - 8, 0, 8*2 + 1, self.size().height())
+                self.playhead.setGeometry(self.header_width + x - 8, 0, 8*2 + 1, self.size().height() - SCROLLBAR_WIDTH)
                 self.playhead.show()
     
-    def playhead_paintEvent(self, event):
+    def playhead_paintEvent(self, event):            
         p = QtGui.QPainter(self.playhead)
         try:
             p.setRenderHint(QtGui.QPainter.Antialiasing)
+            left = self.playhead.pos().x() - self.header_width
+            p.setClipRect(-left, 0, left + 17, self.size().height())
             p.setPen(QColor(128, 0, 0))
             p.setBrush(QColor(128, 0, 0, 128))
             
