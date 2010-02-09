@@ -393,21 +393,26 @@ class TimelineWindow(QtGui.QMainWindow):
         finally:
             p.end
     
-    def ruler_mousePressEvent(self, event):
-        # print 'press'
+    def ruler_mousePressEvent(self, event, offset=0):
+        print 'ruler', event
         self.was_playing = self.app.video.is_playing
         if self.was_playing:
             self.app.video.pause()
-        self.ruler_mouseMoveEvent(event)
+        self.ruler_mouseMoveEvent(event, offset)
     
-    def ruler_mouseMoveEvent(self, event):
+    def ruler_mouseMoveEvent(self, event, offset=0):
         # print 'move'
-        f = self.unapply_zoom(event.pos().x() + self.h_scrollbar.value())
+        f = self.unapply_zoom(event.pos().x() + self.h_scrollbar.value() - offset)
         t = frame_to_time(f, self.app.video.fps)
         t = max(0, t)
         if t < self.app.video.length:
             self.app.time = self.app.video.time = t
             self.app.sync() # HUGE HACK!
+    
+    def mousePressEvent(self, event):
+        self.ruler_mousePressEvent(event, self.header_width)
+    def mouseMoveEvent(self, event):
+        self.ruler_mouseMoveEvent(event, self.header_width)
     
     def ruler_mouseReleaseEvent(self, event):
         # print 'release'
