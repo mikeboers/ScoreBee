@@ -32,11 +32,10 @@ class TrackUI(QWidget):
         self.setStyleSheet('background-color:rgb(%d, %d, %d)' % tuple(random.randrange(200, 256) for i in range(3)))
         self.data = QWidget(self)
         
-        self.header = QLineEdit(self)
+        self.header = QLabel(self)
         self.header.setText('%s %s<%s>' % (track.name, '(%s) ' % track.group if track.group else '', track.key.upper()))
-        self.header.setAlignment(Qt.AlignRight)
-        self.header.setReadOnly(True)
-        self.header.setFrame(False)
+        self.header.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.header.setMargin(8)
         font = QFont()
         font.setFamily("Courier New")
         font.setPointSize(12)
@@ -57,6 +56,9 @@ class TrackUI(QWidget):
             if event.ui is None:
                 self.timeline.handle_event_created_signal(self.track, event)
             event.ui.layout()
+    
+    def mousePressEvent(self, event):
+        print 'track', event
 
 
 class EventUI(QWidget):
@@ -235,11 +237,8 @@ class TimelineWindow(QtGui.QMainWindow):
         self.ruler_line.setFrameShadow(QFrame.Sunken)
         self.ruler_line.setLineWidth(2)
         
-        self.playhead_container = QWidget(self)
-        self.playhead = QWidget(self.playhead_container)
+        self.playhead = QWidget(self)
         self.playhead.paintEvent = self.playhead_paintEvent
-        # Force it off the screen until it is layed out.
-        self.playhead_container.move(-100, 0)
         
         self.header_line = QtGui.QFrame(self)
         self.header_line.setFrameShape(QFrame.VLine)
@@ -394,67 +393,6 @@ class TimelineWindow(QtGui.QMainWindow):
         finally:
             p.end
     
-    
-    def test_hit(self, obj):
-        return obj.rect().contains(obj.mapFromGlobal(self._pos))
-    
-    def pass_if_hits(self, obj):
-        if self.test_hit(obj):
-            if self._event.type() == 2:
-                self._mouse_reciever = obj
-            self.pass_event(obj)
-            raise ValueError('good')
-    
-    _mouse_reciever = None
-    
-    def pass_event(self, obj):
-        event = self._event       
-        event = QMouseEvent(event.type(), obj.mapFromGlobal(event.globalPos()), event.button(), event.buttons(), event.modifiers())
-        getattr(obj, {
-            2: 'mousePressEvent',
-            4: 'mouseDoubleClickEvent',
-            5: 'mouseMoveEvent',
-            3: 'mouseReleaseEvent',
-        }[event.type()])(event)
-    
-    def mouse_event_handler(self, event):
-                
-        self._pos = event.globalPos()
-        self._event = event
-        
-        if event.type() == 2:
-            try:
-                self.pass_if_hits(self.ruler)
-                for track in self.app.doc.tracks:
-                    if self.test_hit(track.ui.data):
-                        for event in track.events:
-                            self.pass_if_hits(event.ui)
-                        break
-
-            except ValueError as e:
-                if e.args[0] != 'good':
-                    raise
-        
-        elif self._mouse_reciever is not None:
-            try:
-                self.pass_event(self._mouse_reciever)
-            except RuntimeError as e:
-                if e.args[0] == 'underlying C/C++ object has been deleted':
-                    self._mouse_reciever = None
-                else:
-                    raise
-            return
-        
-        if self._event.type() == 3:
-            self._mouse_reciever = None
-        return
-        
-    
-    mousePressEvent   = mouse_event_handler
-    mouseMoveEvent    = mouse_event_handler
-    mouseReleaseEvent = mouse_event_handler
-    
-    
     def ruler_mousePressEvent(self, event):
         # print 'press'
         self.was_playing = self.app.video.is_playing
@@ -479,18 +417,11 @@ class TimelineWindow(QtGui.QMainWindow):
         
     def playhead_layout(self):
         if not self.app.is_ready:
-            self.playhead.move(-1000, 0)
-            
+            self.playhead.hide()
         else:     
             x = self.time_to_position(self.app.time)
-            
-            self.playhead_container.setGeometry(
-                self.header_width,
-                0,
-                self.size().width() - self.header_width - SCROLLBAR_WIDTH,
-                self.size().height() - SCROLLBAR_WIDTH
-            )
-            self.playhead.setGeometry(x - 8, 0, 8*2 + 1, self.size().height())
+            self.playhead.setGeometry(self.header_width + x - 8, 0, 8*2 + 1, self.size().height())
+            self.playhead.show()
     
     def playhead_paintEvent(self, event):
         p = QtGui.QPainter(self.playhead)
