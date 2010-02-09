@@ -1,16 +1,45 @@
 
+Videos
+======
+
+dimensions (atleast for Jan 12 videos)
+ 	A/E/F: 704 x 480
+	D    : 528 x 320
+	
+	do A at 50
+	do the rest at 60
+
+compressions:
+	H.264/baseline:
+		A is good with 40%
+		The rest need 55%.
+		compresed they are 4:26 (266s) long
+	
+	mp4 / 500 kbps
+
 General
 =======
 
 
+- propose double converting the videos so we can use the phonon player
+	everything is then does internally as miliseconds
 
-- file sorter
-	Add an hour onto the times
-	hard link instead of copying
-	deal with existing files
-	warnings for missing files
-
+- have a python thread sit and listen to the stdout on the mplayer and keep
+	grabbing the rough progress from it. will need to read '\r' AND '\n' as
+	lines. store on
+	.reported_pos and .reported_speed
+	
 - force a layout when you open a file
+
+- ruler should always be drawn with the current zoom level. there is no readon
+  to not have a working ruler even with no tracks and no video
+
+- track backgrounds should change where there is data but no video
+	ie. dark from 0 to the last bit of data, then lighter upto the end of the
+	video, then white.
+
+- remove the ruler mouse events entirely. the main window will catch them no
+  problem.
 
 - scroll needs to keep playhead in nearly the same positoin when zooming
 - playhead should pull scroll forward
