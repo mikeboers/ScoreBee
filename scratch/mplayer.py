@@ -2,25 +2,27 @@
 import os
 import sys
 import time
+from subprocess import Popen, PIPE
+import string
 
-sys.path.append('.')
-
-from scorebee.mplayer import MPlayer
+printable = set(string.printable) - set('\n\r')
 
 
 assert len(sys.argv) > 1, 'Not enough arguments.'
 
+proc = Popen('mplayer -slave -identify -framedrop'.split() + [sys.argv[1]],
+    stdout=PIPE)
 
-mp = MPlayer(sys.argv[1], autoplay=True)
-print mp
+stdout = os.fdopen(proc.stdout.fileno(), 'rU')
 
-time.sleep(0.5)
-
-names = 'time frame'.split()
-
-for i in range(10):
-    start_time = time.time()
-    for name in names:
-        v = getattr(mp, name)
-        print name, repr(v)
-    print '\tin %.2fms, each' % (1000 * (time.time() - start_time) / len(names))
+while True:
+    line = stdout.readline()
+    if not line:
+        break
+    
+    line = ''.join(x if x in printable else '?' for x in line)
+    
+    print
+    print ' ' + ''.join('%d' % (i/10) for i in range(len(line)))    
+    print ' ' + ''.join('%d' % (i%10) for i in range(len(line)))
+    print repr(line)

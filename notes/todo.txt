@@ -31,6 +31,11 @@ General
 	
 - force a layout when you open a file
 
+- multiple groups per track so that there can be more complex exclusions
+
+- event/state tracks. event tracks have current behaviour. state tracks are a
+  toggle if you just press/release quickly, or they stop when you release after
+  a press/hold
 - ruler should always be drawn with the current zoom level. there is no readon
   to not have a working ruler even with no tracks and no video
 

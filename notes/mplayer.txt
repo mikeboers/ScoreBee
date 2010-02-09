@@ -15,3 +15,19 @@ store all the ID_s and properties and such
 
 it is a bad file if you get the exit=eof at the start, and it is the only thing
 in the data
+
+ID_EXIT=QUIT is because the user quit the video
+
+When you aren't requesting a different speed you get:
+	 00000000001111111111222222222233333333334444444444555555555566666666667
+	 01234567890123456789012345678901234567890123456789012345678901234567890
+	'A:   3.2 V:   3.2 A-V: -0.005 ct: -0.015   0/  0 16%  8%  0.5% 0 0 ?[J?'
+
+When you ARE asking for a different speed you get:
+	 00000000001111111111222222222233333333334444444444555555555566666666667777777
+	 01234567890123456789012345678901234567890123456789012345678901234567890123456
+	'A:  20.8 V:  20.9 A-V: -0.129 ct: -0.014   0/  0 27% 13%  0.8% 0 0 2.00x ?[J?'
+
+In the above printouts, the first ? is the console control character. The
+second is the newline. The last two numbers before the speed can be of any
+length as they are counters. I think everything else SHOULD be fixed.
