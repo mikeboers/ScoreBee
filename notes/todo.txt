@@ -38,7 +38,9 @@ record the creation_date of events
 		<time>: extended
 
 
-
+- consider using weak refs to save references to the app everywhere
+	- or for every event to know the track it is a part of, ect.
+	- and every track to know the parent it is a part of
 
 get it into py2app with an icon in the dock
 

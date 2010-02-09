@@ -24,5 +24,8 @@ run: build
 	# RUN
 	python -m scorebee.main
 
+test: build
+	python -m scorebee.main --debug
+
 clean:
 	find scorebee -name "*.pyc" | xargs rm -v
