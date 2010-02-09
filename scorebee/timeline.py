@@ -304,7 +304,7 @@ class TimelineWindow(QtGui.QMainWindow):
             for i, track in enumerate(self.app.doc.tracks):
                 if track.ui is None:
                     self.handle_track_created_signal(track)
-                track.ui.move(0, i * TRACK_HEIGHT)
+                track.ui.move(0, i * TRACK_HEIGHT - self.v_scrollbar.value())
                 track.ui.layout()
         
         self.playhead_layout()
