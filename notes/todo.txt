@@ -3,24 +3,31 @@ General
 =======
 
 
+- scroll needs to keep playhead in nearly the same positoin when zooming
+- playhead should pull scroll forward
+	but what if we are doing something elsewhere?
+- events completely dissapear at some zoom levels
+- keys to jump to the previous and next events
+
+	h_scrollbar -> time_scrollbar
+		its value is always in frames
+
 
 - make sure to keep everything very MVC.
 - only do what is absolutely nessesary
 
-- add a folder of templates that tanya can open from
-	they are just documents to open
+- unsaved changes warning should be a sheet
+- unsaved changes warning should be accurate
 
-- unsaved changes warning should be a sheet, and should be accurate
-
-
-- highlight track headers when creating new events or in an event
 
 need to check if the video file is valid when opening a file too.
 
+- export options
+	- start time
+	- fps (pull the default from the video)
 
 
-
-highlight the event that is active so we know that it is when paused
+highlight any tracks with open events that are active so we know that it is when paused
 
 playhead needs to look different when in replace mode
 
@@ -37,8 +44,6 @@ get it into py2app with an icon in the dock
 
 
 create new tracks
-
-make a nicer file output format
 
 need to deal with referenced videos which no longer exist.
 
