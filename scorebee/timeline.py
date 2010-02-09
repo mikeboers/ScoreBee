@@ -16,7 +16,7 @@ class UIData(object):
 SCROLLBAR_WIDTH = 15
 
 RULER_HEIGHT = 25
-TRACK_HEIGHT = 32
+TRACK_HEIGHT = 24
 
 
 log = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class EventUI(QWidget):
             p.setBrush(self.pen_color.lighter(125))
             
             p.drawLine(8, TRACK_HEIGHT/2, 8 + width, TRACK_HEIGHT/2)
-            p.drawLine(8 + width + 1, 12, 8 + width + 1, TRACK_HEIGHT - 12)
+            p.drawLine(8 + width + 1, TRACK_HEIGHT/2 - 4, 8 + width + 1, TRACK_HEIGHT/2 + 4)
             
             pen.setWidth(2)
             p.setPen(pen)
