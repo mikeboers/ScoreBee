@@ -65,8 +65,8 @@ class Application(QObject):
         
         # Build up the three windows.
         self.timeline = TimelineWindow(self)
-        self.status   = StatusWindow(self, self.timeline)
-        self.info     = InfoWindow(self, self.timeline)
+        self.status   = StatusWindow(self)
+        self.info     = InfoWindow(self)
         
         self.setup_menu()
         
@@ -77,7 +77,10 @@ class Application(QObject):
         self.last_loop_time = 0
     
     def setup_menu(self):
+        
         menubar = self.timeline.menuBar()
+        # self.status.setMenuBar(menubar)
+        # self.info.setMenuBar(menubar)
         
         file_menu = menubar.addMenu("File")
         
@@ -389,8 +392,8 @@ class Application(QObject):
         
         # Load and apply all of the window settings.
         # TODO: move this onto the window class itself.
-        if os.path.exists('settings/windows.json'):
-            window_prefs = json.load(open('settings/windows.json'))
+        if os.path.exists(cfg.WINDOW_SETTINGS_PATH):
+            window_prefs = json.load(open(cfg.WINDOW_SETTINGS_PATH))
             for name, data in window_prefs.iteritems():
                 window = getattr(self, name)
                 window.move(*data['pos'])
@@ -424,7 +427,7 @@ class Application(QObject):
                 pos=tuple(getattr(self, name).pos()),
                 size=tuple(getattr(self, name).size()),
             )
-        json.dump(window_prefs, open('settings/windows.json', 'w'), indent=4)
+        json.dump(window_prefs, open(cfg.WINDOW_SETTINGS_PATH, 'w'), indent=4)
     
     @property
     def frame(self):

@@ -6,10 +6,10 @@ from .ui.info_window import Ui_info_window
 
 
 
-class InfoWindow(QtGui.QDialog):
+class InfoWindow(QtGui.QWidget):
 
     def __init__(self, app, *args):
-        QtGui.QDialog.__init__(self, *args)
+        QtGui.QWidget.__init__(self, *args)
         self.app = app
         self.ui = Ui_info_window()
         self.ui.setupUi(self)

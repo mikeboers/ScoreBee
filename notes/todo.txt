@@ -3,6 +3,15 @@ General
 =======
 
 
+
+- file sorter
+	Add an hour onto the times
+	hard link instead of copying
+	deal with existing files
+	warnings for missing files
+
+- force a layout when you open a file
+
 - scroll needs to keep playhead in nearly the same positoin when zooming
 - playhead should pull scroll forward
 	but what if we are doing something elsewhere?

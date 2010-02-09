@@ -11,10 +11,10 @@ log = logging.getLogger(__name__)
 BUTTON_NAMES = 'play step fast_forward rewind go_to_start'.split()
 
 
-class StatusWindow(QtGui.QDialog):
+class StatusWindow(QtGui.QWidget):
 
     def __init__(self, app, *args):
-        QtGui.QDialog.__init__(self, *args)
+        QtGui.QWidget.__init__(self, *args)
         self.app = app
         
         self.ui = UI()

@@ -2,9 +2,20 @@
 
 """Lab video organizer.
 
-USAGE: python sort_raw_videos.py [-r] source_dir dest_dir 
+USAGE: python sort_raw_videos.py source_dir dest_dir 
 
 """
+
+date_to_count = {
+    '2010-10-12': 4,
+    '2010-01-19': 8,
+    '2010-01-20': 10,
+    '2010-01-24': 11,
+    '2010-01-26': 12,
+    '2010-01-27': 2,
+    '2010-01-29': 15,
+    '2010-02-04': 4,
+}
 
 from glob import glob
 import os
@@ -15,8 +26,6 @@ assert len(sys.argv) >= 3
 
 source_dir = sys.argv[-2]
 dest_dir   = sys.argv[-1]
-
-recurse_once = sys.argv[1] == '-r'
 
 source_dir = os.path.abspath(source_dir)
 dest_dir   = os.path.abspath(dest_dir)
@@ -42,7 +51,7 @@ def process_folder(source_dir, dest_dir):
             start_time = raw_start_time.replace(':', '-')
             print '\t\t%sT%s' % (start_date, start_time), 
             if raw_start_time != last_end_time:
-                print '- NEW!'
+                print '- Starting new trial.'
                 i = 0
                 current_dir = os.path.join(dest_dir, '%s_%s_cam-%d' % (start_date, start_time, cam_no))
                 if not os.path.exists(current_dir):
@@ -51,19 +60,17 @@ def process_folder(source_dir, dest_dir):
                 print
             last_end_time = end_time
             i += 1
-            call(['cp',
+            ret = call(['ln',
                 os.path.join(source_dir, cam_id, name),
                 os.path.join(current_dir, '%s_%s_cam-%d.mp4' % (start_date, start_time, cam_no))
             ])
+            # print ret
 
 
-if recurse_once:
-    for name in os.listdir(source_dir):
-        source = os.path.join(source_dir, name)
-        dest = os.path.join(dest_dir)
-        if os.path.isdir(source):
-            if not os.path.exists(dest):
-                os.makedirs(dest)
-            process_folder(source, dest)
-else:
-    process_folder(source_dir, dest_dir)
+for name in os.listdir(source_dir):
+    source = os.path.join(source_dir, name)
+    dest = os.path.join(dest_dir)
+    if os.path.isdir(source):
+        if not os.path.exists(dest):
+            os.makedirs(dest)
+        process_folder(source, dest)
