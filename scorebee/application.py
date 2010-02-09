@@ -1,19 +1,22 @@
 
-import sys
+import csv
 import json
-import os
 import logging
+import os
+import sys
 import time
 
+
 from .qt import *
-from .timeline import TimelineWindow
-from .status import StatusWindow
-from .info import InfoWindow
-from .document import Document, Track, Event
-from .mplayer import MPlayer
-from .util import next_time_mode, format_time
 from . import config as cfg
+from .document import Document, Track, Event
+from .info import InfoWindow
+from .mplayer import MPlayer
+from .status import StatusWindow
 from .templates import templates
+from .timeline import TimelineWindow
+from .util import next_time_mode, format_time
+
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +104,11 @@ class Application(QObject):
         import_video.setShortcut('Ctrl+I')
         connect(import_video, SIGNAL('triggered()'), self.handle_file_import_video)
         file_menu.addAction(import_video)
+        
+        export = QAction("Export Data...", self.timeline)
+        export.setShortcut('Ctrl+E')
+        connect(export, SIGNAL('triggered()'), self.handle_file_export)
+        file_menu.addAction(export)
         
         file_menu.addSeparator()
         
@@ -246,6 +254,33 @@ class Application(QObject):
         self.doc.video_path = path
         self._video = None
         self.emit(SIGNAL('doc_changed'))
+    
+    def handle_file_export(self):
+        log.debug('File > Export')
+        path = str(QFileDialog.getSaveFileName(self.timeline,
+            caption="Export Data",
+            directory='/Users/mikeboers/Desktop',
+            filter="Spreadsheet (*.csv)",
+        ))
+        if not len(path):
+            return
+        
+        fh = csv.writer(open(path, 'w'))
+        header = []
+        for track in self.doc.tracks:
+            header.extend([track.name, ''])
+        fh.writerow(header)
+        max_length = max(len(track.events) for track in self.doc.tracks)
+        for i in xrange(max_length):
+            row = []
+            for track in self.doc.tracks:
+                if len(track.events) > i:
+                    # XXX: This only works when there is a video at all.
+                    row.extend(['%.3f' % x / self.video.fps for x in [track.events[i].start, track.events[i].end]])
+                else:
+                    row.extend(['', ''])
+            fh.writerow(row)
+        
     
     def handle_file_save(self):
         log.debug('File > Save')
