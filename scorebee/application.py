@@ -503,6 +503,11 @@ class Application(QObject):
     def keyPressEvent(self, event):
         key = event.key()
         
+        # If any modifer is held besides shift, we don't care for this event
+        if int(event.modifiers()) & ~Qt.ShiftModifier:
+            event.ignore()
+            return
+        
         # Track the key press.
         if key in self.pressed_keys:
             return
@@ -559,6 +564,11 @@ class Application(QObject):
     
     def keyReleaseEvent(self, event):
         key = event.key()
+        
+        # If any modifer is held besides shift, we don't care for this event
+        if int(event.modifiers()) & ~Qt.ShiftModifier:
+            event.ignore()
+            return
         
         # log.debug('keyReleaseEvent %d' % key)
         
