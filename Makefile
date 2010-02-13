@@ -28,4 +28,5 @@ test: build
 	python -m scorebee.main --debug
 
 clean:
-	find scorebee -name "*.pyc" | xargs rm -v
+	- find scorebee -name "*.pyc" | xargs rm -v
+	- rm -rf build dist
