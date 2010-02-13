@@ -279,7 +279,7 @@ class Application(QObject):
             for track in self.doc.tracks:
                 if len(track.events) > i:
                     # XXX: This only works when there is a video at all.
-                    row.extend(['%.3f' % x / self.video.fps for x in [track.events[i].start, track.events[i].end]])
+                    row.extend(['%.3f' % (float(x) / float(self.video.fps)) for x in [track.events[i].start, track.events[i].end]])
                 else:
                     row.extend(['', ''])
             fh.writerow(row)
