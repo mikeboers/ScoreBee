@@ -1,42 +1,52 @@
 
-Videos
-======
+What do we need for publishing?
+--------------------------------
 
-dimensions (atleast for Jan 12 videos)
- 	A/E/F: 704 x 480
-	D    : 528 x 320
-	
-	do A at 50
-	do the rest at 60
+- must run on Windows
+- must be a double-click on Windows
+- would be nice to have on Linux
+- would be nice to have .deb on Linux (Chris should be able to help)
 
-compressions:
-	H.264/baseline:
-		A is good with 40%
-		The rest need 55%.
-		compresed they are 4:26 (266s) long
-	
-	mp4 / 500 kbps
+- fix some bugs:
+    - zooming
 
-General
-=======
+Would be nice...
+-----------------
+
+- editable data points
+- editable data tracks
+- track real time (in ms), instead of frames
+- better export options
 
 
-- propose double converting the videos so we can use the phonon player
-	everything is then does internally as miliseconds
+Bugs
+-----
+
+- data points dissapear at different zooming levels
+- "layout" isn't run when you first open a file
+
+
+Random ideas to sort
+---------------------
+
+- the icon is a stopwatch, painted like a bee
+
+- can we embed mplayer into the process?
+- could we hide the mplayer process?
+- can we just use phonon (which comes with Qt?)
 
 - have a python thread sit and listen to the stdout on the mplayer and keep
 	grabbing the rough progress from it. will need to read '\r' AND '\n' as
 	lines. store on
 	.reported_pos and .reported_speed
-	
-- force a layout when you open a file
 
 - multiple groups per track so that there can be more complex exclusions
 
 - event/state tracks. event tracks have current behaviour. state tracks are a
   toggle if you just press/release quickly, or they stop when you release after
-  a press/hold
-- ruler should always be drawn with the current zoom level. there is no readon
+  a press/hold. This could be a toggle in the track headers.
+  
+- ruler should always be drawn with the current zoom level. there is no reason
   to not have a working ruler even with no tracks and no video
 
 - track backgrounds should change where there is data but no video
@@ -63,7 +73,7 @@ General
 - unsaved changes warning should be accurate
 
 
-need to check if the video file is valid when opening a file too.
+- need to check if the video file is valid when opening a file too.
 
 - export options
 	- start time
