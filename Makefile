@@ -1,32 +1,27 @@
 
-default: build
+.PHONY: build run test clean
+.DEFAULT: build
+
+
+UIs := $(wildcard ui/*.ui)
+RCs := $(wildcard ui/*.qrc)
+PYs := $(UIs:ui/%.ui=scorebee/ui/%.py) $(RCs:ui/%.qrc=scorebee/ui/%_rc.py)
+
+build: $(PYs)
 
 scorebee/ui/%.py: ui/%.ui
-	pyuic4-2.6 $< > $@
+	pyuic4 $< > $@
 	
 scorebee/ui/%_rc.py: ui/%.qrc
-	pyrcc4-2.6 $< > $@
-
-status_window: scorebee/ui/status_window.py scorebee/ui/status_window_rc.py
-info_window: scorebee/ui/info_window.py
-timeline_window: scorebee/ui/timeline_window.py
-
-build: status_window info_window timeline_window
-	# BUILD
-
-app: build
-	python setup.py py2app --alias
-
-dist: build
-	python setup.py py2app
+	pyrcc4 $< > $@
 
 run: build
-	# RUN
 	python -m scorebee.main
 
 test: build
 	python -m scorebee.main --debug
 
 clean:
+	- rm scorebee/ui/*_window.py
 	- find scorebee -name "*.pyc" | xargs rm -v
 	- rm -rf build dist

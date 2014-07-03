@@ -6,7 +6,7 @@
 /bin
 /include/python2.6
 /lib/python2.6
-
+/venv
 /build
 /dist
 
