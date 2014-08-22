@@ -1,6 +1,0 @@
-
-10-02-09-1 and 10-02-09-2:
-	Tanya said that she could not create new events on the tracks that were
-	throwing these errors. It appears that an open event was deleted (while
-	still open), and when it tried to layout() Qt realized the C++ object that
-	it was connected to had been deleted.

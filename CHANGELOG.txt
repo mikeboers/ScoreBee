@@ -1,0 +1,18 @@
+
+v1.0.0
+------
+This is the state of the code as discussed in the draft of the methods
+paper entitled "ScoreBee: Borrowing concepts from video editing to create
+flexible, visual, free behavioural coding software."
+
+Outstanding issues include:
+- behaviours and groups are edited by changing the scorebee/templates.py source;
+- video playing is handled by an external mplayer process, and while viewing
+  playback we do not have accurate time (however we do syncronize on every
+  scored event, so the science is still good);
+- UI always assumes there is a video imported, and dumps many errors to the
+  console when first opened.
+
+We wouldn't normally call this "version 1", but it is good enough for lots of
+good science, so we aren't going to hold it back.
+
