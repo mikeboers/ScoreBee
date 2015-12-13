@@ -22,7 +22,11 @@ brew install pyqt
 
 # Install mplayer, and (re)build the font cache.
 brew install mplayer
-fc-cache -v
+
+# Make sure mplayer works.
+# Note: the first time MPlayer OSX plays a video, fontconfig will build it's
+# font cache. This can take a while but only has to be done once.
+mplayer /path/to/some/video.mov
 
 # Grab ScoreBee itself (if you are reading this on GitHub).
 git clone git@github.com:mikeboers/ScoreBee
