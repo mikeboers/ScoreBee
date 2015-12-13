@@ -1,7 +1,17 @@
 ScoreBee
 ========
 
-*ScoreBee* is a GUI tool to assist biologists in behavioral scoring.
+*ScoreBee* is a GUI tool for scoring videos. It was designed to score behaviour for a biology research project.
+
+ScoreBee is quite functional, but is not considered a polished product, and so comes with a number of caveats:
+
+- It uses an external video player that it must continuously syncronize with. All data collection performs such a sync, and so the data is correct, but the interface is occasionally disconcerting as time seems to "jump" around slightly.
+
+- Time is represented as a count of frames. This might be a problem with your research if you have a variable speed video source, and your frames are not the same length.
+
+- There is no GUI for editing the tracks you are scoring, not the templates; one must edit the [template defitions](https://github.com/mikeboers/ScoreBee/blob/master/scorebee/templates.py).
+
+There are plans to replace the external video player with an embedded one, to add missing critical features, and to stomp a few bugs, but there is no timeline in place.
 
 
 Installation
